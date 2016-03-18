@@ -3,40 +3,37 @@
 # This template uses the ggntuples as input, make the preselection and get reduced root file which should be saved in dir:preselected. It can be very time consuming and need to move output manually. This one is only for reducing event number purpose and get the first look of pre region. 
 # If tighter cuts apply to the preselect, only need to run script in dir:scriptANA again. 
 
-
 import os
 import sys
 import ROOT
 from ROOT import *
 from array import array
-from ana_mu import muPFRelCombIso
+from leptonANA.ElectronChannel.ana_muon import *
 
 sw = ROOT.TStopwatch()
 sw.Start()
 print "start"
 chain_in = ROOT.TChain("ggNtuplizer/EventTree")
-chain_in.Add("root://xrootd-cms.infn.it//store/group/phys_smp/ggNtuples/13TeV/data/V07_04_14_00/SilverJSON/job_data_ggNtuple_SingleElectron_Run2015D_PromptReco-v4_25ns_JSON_Silver_1915pb_miniAOD.root")
-#chain_in.Add("data/SingleElectron_Run2015D_PromptReco-v4_25ns_JSON_Silver_1915pb_miniAOD__data_example.root")
+chain_in.Add("root://xrootd-cms.infn.it//store/group/phys_smp/ggNtuples/13TeV/mc/")
 chain_in.SetBranchStatus("tau*",0)
 n_events = chain_in.GetEntries()
 print"Total events for processing: ",n_events
 
 #os.mkdir("Output_SingleEle_v315",0755)
-os.system('mkdir -p Output_Elechannel_dataSingleEle_vDate')
-os.chdir("Output_Elechannel_dataSingleEle_vDate")
+os.system('mkdir -p Output_Elechannel_mcxxx_v318')
+os.chdir("Output_Elechannel_mcxxx_v318")
 
 
 #------------
 
 pre_SingleElePt = ROOT.TH1F("pre_SingleElePt","pre_SingleElePt",100,0,1000)
 pre_SingleEleEta = ROOT.TH1F("pre_SingleEleEta","pre_SingleEleEta",60,-3,3)
-pre_nPho = ROOT.TH1F("pre_nPho","pre_nPho",5,0,5)
 pre_nJet = ROOT.TH1F("pre_nJet","pre_nJet",15,0,15)
 preMET = ROOT.TH1F("preMET","preMET",100,0,1000)
 pre_LeadBjetPt = ROOT.TH1F("pre_LeadBjetPt","pre_LeadBjetPt",100,0,1000)
 pre_nJet_nbJet = ROOT.TH2F("pre_nJet_nbJet","pre_nJet_nbJet",20,0,20,10,0,10)
 
-file_out = ROOT.TFile("reduced_singleEle.root","recreate")
+file_out = ROOT.TFile("reduced_mcxxx_v318.root","recreate")
 dir_out = file_out.mkdir("ggNtuplizer")
 dir_out.cd()
 tree_out = chain_in.CloneTree(0)
@@ -58,9 +55,9 @@ for i in range(n_events):
 #    if abs(chain_in.vtz)>24 or abs(chain_in.rho)>2: continue     //error here since the rho is not the "rho"
 
 
-# -----------------1.HLT selection(HLT_Ele23_WPLoose_Gsf_v)
+# -----------------1.HLT selection(HLT_Ele23_WP75_Gsf_v)
 
-    hltele = chain_in.HLTEleMuX>>6&1
+    hltele = chain_in.HLTEleMuX>>10&1
     if hltele!=1:
         continue
     n_hlt+=1
@@ -109,6 +106,15 @@ for i in range(n_events):
     tree_out.Fill()
 #---------------------above for pre-selection---------------------
 
+#-----------------------below for pre plots                                                                                                                                                                                     
+
+    pre_SingleElePt.Fill(chain_in.elePt[ele_ind])
+    pre_SingleEleEta.Fill(chain_in.eleEta[ele_ind])
+    pre_nJet_nbJet.Fill(n_jet,n_bjet)
+    pre_LeadBjetPt.Fill(chain_in.jetPt[leadbjet_ind])
+    preMET.Fill(chain_in.pfMET)
+    pre_nJet.Fill(n_jet)
+
 
 file_out.Write()
 file_out.Close()
@@ -122,13 +128,9 @@ print "----------------------"
 
 c=ROOT.TCanvas("c","Plots",800,800)
 c.cd()
-pre_nPho.Draw()
+pre_nJet.Draw()
 gPad.SetLogy()
 gPad.Update()
-c.Print("pre_nPho.pdf","pdf")
-
-c.Clear()
-pre_nJet.Draw()
 c.Print("pre_nJet.pdf","pdf")
 
 
