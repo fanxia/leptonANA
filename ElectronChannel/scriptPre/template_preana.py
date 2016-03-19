@@ -1,6 +1,6 @@
 #!/bin/python
 # 3.17.2016 by Fan Xia
-# This template uses the ggntuples as input, make the preselection and get reduced root file which should be saved in dir:preselected. It can be very time consuming and need to move output manually. This one is only for reducing event number purpose and get the first look of pre region. 
+# This template uses the ggntuples as input, make the preselection and get reduced root file which should be saved in dir:preselected. It can be very time consuming. This one is only for reducing event number purpose and get the first look of pre region. 
 # If tighter cuts apply to the preselect, only need to run script in dir:scriptANA again. 
 
 import os
@@ -20,8 +20,8 @@ n_events = chain_in.GetEntries()
 print"Total events for processing: ",n_events
 
 #os.mkdir("Output_SingleEle_v315",0755)
-os.system('mkdir -p Output_Elechannel_mcxxx_v318')
-os.chdir("Output_Elechannel_mcxxx_v318")
+os.system('mkdir -p ../preselected/Output_mcxxx')
+os.chdir("../preselected/Output_mcxxx")
 
 
 #------------

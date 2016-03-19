@@ -2,7 +2,7 @@
 # 3.17.2016 by Fan Xia
 # This template uses the reduced EventTree_pre from dir:preselected as input, make SR and CR selection and store the new tree to dir:selected 
 # For any change of the selection cuts, should do this ana again
-# This script for dataSingleELe
+# This script for mc bkg
 
 import os
 import sys
@@ -66,7 +66,7 @@ SR2_nJet_nbJet = ROOT.TH2F("SR2_nJet_nbJet","SR2_nJet_nbJet",15,0,15,10,0,10)
 #SR2_nJet_nbJet_ratio = ROOT.TH2F("SR2_nJet_nbJet_ratio","SR2_nJet_nbJet_ratio",15,0,15,10,0,10)
 #------------
 
-file_out = ROOT.TFile("selected_datasingleEle_v318.root","recreate")
+file_out = ROOT.TFile("selected"+sys.argv[2]+".root","recreate")
 dir_out = file_out.mkdir("ggNtuplizer")
 dir_out.cd()
 tree_out = chain_in.CloneTree(0)

@@ -21,8 +21,8 @@ n_events = chain_in.GetEntries()
 print"Total events for processing: ",n_events
 
 #os.mkdir("Output_SingleEle_v315",0755)
-os.system('mkdir -p Output_Elechannel_mcwjets_v318')
-os.chdir("Output_Elechannel_mcwjets_v318")
+os.system('mkdir -p ../preselected/Output_mcwjets_v318')
+os.chdir("../preselected/Output_mcwjets_v318")
 
 
 #------------
