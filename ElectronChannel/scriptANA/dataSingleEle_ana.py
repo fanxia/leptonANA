@@ -2,7 +2,7 @@
 # 3.17.2016 by Fan Xia
 # This template uses the reduced EventTree_pre from dir:preselected as input, make SR and CR selection and store the new tree to dir:selected 
 # For any change of the selection cuts, should do this ana again
-# This script for dataSingleELe
+# This script for data
 
 import os
 import sys
@@ -12,16 +12,22 @@ from array import array
 from leptonANA.ElectronChannel.ana_muon import *
 from leptonANA.ElectronChannel.Utilfunc import *
 
+
 sw = ROOT.TStopwatch()
 sw.Start()
 print "start"
+print "input: "+sys.argv[1]
+print "output: "+sys.argv[2]
 chain_in = ROOT.TChain("ggNtuplizer/EventTree_pre")
-chain_in.Add("../preselected/reduced_Elechannel_dataSingleEle.root")
+#chain_in.Add("../preselected/reduced_Elechannel_dataSingleEle.root")
+chain_in.Add(sys.argv[1])
 n_events = chain_in.GetEntries()
 print"Total events for processing: ",n_events
 
-os.system('mkdir -p ../selected/Output_Selected_dataSingleEle_v318')
-os.chdir("../selected/Output_Selected_dataSingleEle_v318")
+#os.system('mkdir -p ../selected/Output_Selected_dataSingleEle_v318')
+#os.chdir("../selected/Output_Selected_dataSingleEle_v318")
+os.system('mkdir -p ../selected/'+sys.argv[2])
+os.chdir('../selected/'+sys.argv[2])
 
 
 #------------
@@ -62,15 +68,33 @@ SR2_nJet_nbJet = ROOT.TH2F("SR2_nJet_nbJet","SR2_nJet_nbJet",15,0,15,10,0,10)
 #SR2_nJet_nbJet_ratio = ROOT.TH2F("SR2_nJet_nbJet_ratio","SR2_nJet_nbJet_ratio",15,0,15,10,0,10)
 #------------
 
-file_out = ROOT.TFile("selected_datasingleEle_v318.root","recreate")
-dir_out = file_out.mkdir("ggNtuplizer")
-dir_out.cd()
+file_out = ROOT.TFile(sys.argv[2]+".root","recreate")
+#dir_out = file_out.mkdir("ggNtuplizer")
+#dir_out.cd()
+
+#--------------define extra branches to record seleted obj------------
+ele_index=array('i',[-1])
+leadbjet_index=array('i',[-1])
+sr1pho_index=array('i',[-1])
+sr2pho_index=array('i',[-1,-1])
+
+#-----------------------------------------------
 tree_out = chain_in.CloneTree(0)
 tree_out.SetName("EventTree_pre")
+tree_out.Branch("ele_index",ele_index,"ele_index/I")
+tree_out.Branch("leadbjet_index",leadbjet_index,"leadbjet_index/I")
+
 tree1_out = chain_in.CloneTree(0)
 tree1_out.SetName("EventTree_SR1")
+tree1_out.Branch("ele_index",ele_index,"ele_index/I")
+tree1_out.Branch("leadbjet_index",leadbjet_index,"leadbjet_index/I")
+tree1_out.Branch("sr1pho_index",sr1pho_index,"sr1pho_index/I")
+
 tree2_out = chain_in.CloneTree(0)
 tree2_out.SetName("EventTree_SR2")
+tree2_out.Branch("ele_index",ele_index,"ele_index/I")
+tree2_out.Branch("leadbjet_index",leadbjet_index,"leadbjet_index/I")
+tree2_out.Branch("sr2pho_index",sr2pho_index,"sr2pho_index[2]/I")
 
 TRVSR2pho1=ROOT.TLorentzVector()
 TRVSR2pho2=ROOT.TLorentzVector()
@@ -110,6 +134,7 @@ for i in range(n_events):
         if chain_in.elePt[e]>30 and (chain_in.eleIDbit[e]>>3&1)==1 and abs(chain_in.eleEta[e])<2.5:
             n_tightEle+=1
             ele_ind=e
+            ele_index[0]=e
         if chain_in.elePt[e]>10 and (chain_in.eleIDbit[e]>>1&1)==1 and abs(chain_in.eleEta[e])<2.5:
             n_looseEle+=1
     if n_tightEle !=1 or n_looseEle !=1:
@@ -143,6 +168,7 @@ for i in range(n_events):
         continue
     n_pre+=1
     leadbjet_ind=max(bjetlist,key=lambda x: chain_in.jetPt[x])
+    leadbjet_index[0]=leadbjet_ind
     tree_out.Fill()
     TRVele.SetPtEtaPhiM(chain_in.elePt[ele_ind],chain_in.eleEta[ele_ind],chain_in.elePhi[ele_ind],0.000511)
 #---------------------above for pre-selection---------------------
@@ -159,7 +185,6 @@ for i in range(n_events):
 #---------------------photon dR loop----
     pholist2=[]
     for p1 in pholist1:
-#        dRphoton_ele = ((chain_in.phoEta[p1]-chain_in.eleEta[ele_ind])**2+(chain_in.phoPhi[p1]-chain_in.elePhi[ele_ind])**2)**0.5
         dRphoton_ele = dR(chain_in.phoEta[p1],chain_in.eleEta[ele_ind],chain_in.phoPhi[p1],chain_in.elePhi[ele_ind])
 
         if dRphoton_ele<=0.7:
@@ -182,9 +207,9 @@ for i in range(n_events):
         w = 1
         for p4 in pholist3:
             dRphoton_photon = dR(chain_in.phoEta[p3],chain_in.phoEta[p4],chain_in.phoPhi[p3],chain_in.phoPhi[p4])
-#            if dRphoton_photon<=0.5 and p4!=p3:
-#                w=0
-#                break
+            if dRphoton_photon<=0.5 and p4!=p3:
+                w=0
+                break
         if w==1:
             pholist.append(p3)
 
@@ -202,15 +227,11 @@ for i in range(n_events):
 #-------------------------below for signal region1 &2
     if len(pholist)==1:
         singlepho_ind=pholist[0]
+        sr1pho_index[0]=singlepho_ind
         (n_SR1)+=1
         TRVSR1pho.SetPtEtaPhiM(chain_in.phoEt[singlepho_ind],chain_in.phoEta[singlepho_ind],chain_in.phoPhi[singlepho_ind],0.0)
         tree1_out.Fill()
         SR1MET.Fill(chain_in.pfMET)
-#----
-        dRphoton_ele = dR(chain_in.phoEta[singlepho_ind],chain_in.eleEta[ele_ind],chain_in.phoPhi[singlepho_ind],chain_in.elePhi[ele_ind])
-        if dRphoton_ele<0.5:
-            print i,"----dR=",dRphoton_ele
-
         SR1dR_pho_ele.Fill(dRphoton_ele)
         SinglePhoEt.Fill(chain_in.phoEt[singlepho_ind])
         SinglePhoEta.Fill(chain_in.phoEta[singlepho_ind])
@@ -227,6 +248,8 @@ for i in range(n_events):
     elif len(pholist)>=2:    
         leadpho_ind=max(pholist,key=lambda x: chain_in.phoEt[x])
         trailpho_ind=max([pp for pp in pholist if pp!=leadpho_ind],key=lambda x: chain_in.phoEt[x])
+        sr2pho_index[0]=leadpho_ind
+        sr2pho_index[1]=trailpho_ind
         TRVSR2pho1.SetPtEtaPhiM(chain_in.phoEt[leadpho_ind],chain_in.phoEta[leadpho_ind],chain_in.phoPhi[leadpho_ind],0.0)
         TRVSR2pho2.SetPtEtaPhiM(chain_in.phoEt[trailpho_ind],chain_in.phoEta[trailpho_ind],chain_in.phoPhi[trailpho_ind],0.0)
 #        phodR=pho1.DeltaR(pho2)

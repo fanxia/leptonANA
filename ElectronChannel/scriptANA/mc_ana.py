@@ -42,7 +42,7 @@ pre_nJet_nbJet = ROOT.TH2F("pre_nJet_nbJet","pre_nJet_nbJet",20,0,20,10,0,10)
 
 
 SR1_SingleElePt = ROOT.TH1F("SR1_SingleElePt","SR1_SingleElePt",100,0,1000)
-SR1dR_pho_ele = ROOT.TH1F("SR1dR_pho_ele","SR1dR_pho_ele",100,0,1000)
+SR1dR_pho_ele = ROOT.TH1F("SR1dR_pho_ele","SR1dR_pho_ele",100,0,10)
 SinglePhoEt = ROOT.TH1F("SinglePhoEt","SinglePhoEt",100,0,1000)
 SinglePhoEta = ROOT.TH1F("SinglePhoEta","SinglePhoEta",60,-3,3)
 SinglePhoR9 = ROOT.TH1F("SinglePhoR9","SinglePhoR9",60,0,1.2)
