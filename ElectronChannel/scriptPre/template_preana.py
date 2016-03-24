@@ -1,10 +1,13 @@
 #!/bin/python
 # 3.17.2016 by Fan Xia
-# This template uses the ggntuples as input, make the preselection and get reduced root file which should be saved in dir:preselected. It can be very time consuming. This one is only for reducing event number purpose and get the first look of pre region. 
+# This template uses the ggntuples as input, make the preselection and get reduced root file which should be saved in dir:preselected. It can be very time consuming and need to move output manually. This one is only for reducing event number purpose and get the first look of pre region. 
 # If tighter cuts apply to the preselect, only need to run script in dir:scriptANA again. 
+
 
 import os
 import sys
+import time
+import datetime
 import ROOT
 from ROOT import *
 from array import array
@@ -14,14 +17,15 @@ sw = ROOT.TStopwatch()
 sw.Start()
 print "start"
 chain_in = ROOT.TChain("ggNtuplizer/EventTree")
-chain_in.Add("root://xrootd-cms.infn.it//store/group/phys_smp/ggNtuples/13TeV/mc/")
+chain_in.Add("root://xrootd-cms.infn.it//store/group/phys_smp/ggNtuples/13TeV/mc/job_spring15_ggNtuple_WJetsToLNu_amcatnlo_pythia8_25ns_miniAOD.root")
 chain_in.SetBranchStatus("tau*",0)
 n_events = chain_in.GetEntries()
 print"Total events for processing: ",n_events
 
+dd=datetime.datetime.now().strftime("%b%d")
 #os.mkdir("Output_SingleEle_v315",0755)
-os.system('mkdir -p ../preselected/Output_mcxxx')
-os.chdir("../preselected/Output_mcxxx")
+os.system('mkdir -p ../preselected/Output_xx'+dd)
+os.chdir("../preselected/Output_xx"+dd)
 
 
 #------------
@@ -33,7 +37,7 @@ preMET = ROOT.TH1F("preMET","preMET",100,0,1000)
 pre_LeadBjetPt = ROOT.TH1F("pre_LeadBjetPt","pre_LeadBjetPt",100,0,1000)
 pre_nJet_nbJet = ROOT.TH2F("pre_nJet_nbJet","pre_nJet_nbJet",20,0,20,10,0,10)
 
-file_out = ROOT.TFile("reduced_mcxxx_v318.root","recreate")
+file_out = ROOT.TFile("reduced_mcxx.root","recreate")
 dir_out = file_out.mkdir("ggNtuplizer")
 dir_out.cd()
 tree_out = chain_in.CloneTree(0)
@@ -125,6 +129,20 @@ print "n_hlt pass = ", n_hlt
 print "n_singleEle pass = ", n_singleEle
 print "n_pre selection = ",n_pre
 print "----------------------"
+
+
+#### to write in logpre.txt
+log = open("logpre.txt","a")
+log.write("############################################################\n")
+log.write("%s"%datetime.datetime.now())
+log.write("\n-----mcxx----------\n")
+log.write("TotalEventNumber = %s"%n_events)
+log.write ("\n n_hlt pass = %s"% n_hlt)
+log.write( "\nn_singleEle pass =%s "%n_singleEle)
+log.write("\nn_pre selection = %s"%n_pre)
+log.write( "\n----------------------\n\n")
+log.close()
+
 
 c=ROOT.TCanvas("c","Plots",800,800)
 c.cd()

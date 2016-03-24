@@ -6,6 +6,8 @@
 
 import os
 import sys
+import time
+import datetime
 import ROOT
 from ROOT import *
 from array import array
@@ -20,9 +22,10 @@ chain_in.SetBranchStatus("tau*",0)
 n_events = chain_in.GetEntries()
 print"Total events for processing: ",n_events
 
+dd=datetime.datetime.now().strftime("%b%d")
 #os.mkdir("Output_SingleEle_v315",0755)
-os.system('mkdir -p ../preselected/Output_mcwjets_v318')
-os.chdir("../preselected/Output_mcwjets_v318")
+os.system('mkdir -p ../preselected/Output_mcwjets_'+dd)
+os.chdir("../preselected/Output_mcwjets_"+dd)
 
 
 #------------
@@ -126,6 +129,20 @@ print "n_hlt pass = ", n_hlt
 print "n_singleEle pass = ", n_singleEle
 print "n_pre selection = ",n_pre
 print "----------------------"
+
+
+#### to write in logpre.txt
+log = open("logpre.txt","a")
+log.write("############################################################\n")
+log.write("%s"%datetime.datetime.now())
+log.write("\n-----mcwjetstolnu----------\n")
+log.write("TotalEventNumber = %s"%n_events)
+log.write ("\n n_hlt pass = %s"% n_hlt)
+log.write( "\nn_singleEle pass =%s "%n_singleEle)
+log.write("\nn_pre selection = %s"%n_pre)
+log.write( "\n----------------------\n\n")
+log.close()
+
 
 c=ROOT.TCanvas("c","Plots",800,800)
 c.cd()

@@ -6,6 +6,8 @@
 
 import os
 import sys
+import time
+import datetime
 import ROOT
 from ROOT import *
 from array import array
@@ -15,6 +17,7 @@ sw = ROOT.TStopwatch()
 sw.Start()
 print "start"
 chain_in = ROOT.TChain("ggNtuplizer/EventTree")
+#chain_in.Add("../datasamples/SingleElectron_Run2015D_PromptReco-v4_25ns_JSON_Silver_1915pb_miniAOD__data_example.root")
 chain_in.Add("root://eoscms.cern.ch//eos/cms/store/group/phys_smp/ggNtuples/13TeV/job_data_ggNtuple_SingleElectron_Run2015D_PromptReco-v4_25ns_JSON_Silver_1915pb_miniAOD.root")
 chain_in.Add("root://eoscms.cern.ch//eos/cms/store/group/phys_smp/ggNtuples/13TeV/job_data_ggNtuple_SingleElectron_Run2015D_05Oct2015_25ns_JSON_Silver_1915pb_miniAOD.root")
 chain_in.Add("root://eoscms.cern.ch//eos/cms/store/group/phys_smp/ggNtuples/13TeV/job_data_ggNtuple_SingleElectron_Run2015C_05Oct2015_25ns_JSON_Silver_1915pb_miniAOD.root")
@@ -22,9 +25,10 @@ chain_in.SetBranchStatus("tau*",0)
 n_events = chain_in.GetEntries()
 print"Total events for processing: ",n_events
 
+dd=datetime.datetime.now().strftime("%b%d")
 #os.mkdir("Output_SingleEle_v315",0755)
-os.system('mkdir -p ../preselected/Output_dataSingleEle')
-os.chdir("../preselected/Output_dataSingleEle")
+os.system('mkdir -p ../preselected/Output_dataSingleEle'+dd)
+os.chdir("../preselected/Output_dataSingleEle"+dd)
 
 
 #------------
@@ -46,8 +50,8 @@ n_hlt=0
 n_singleEle=0
 n_pre=0
 
-for i in range(1000):
-#for i in range(n_events):
+#for i in range(1000):
+for i in range(n_events):
     chain_in.GetEntry(i)
     
     if i%100000 ==0:
@@ -132,12 +136,13 @@ print "----------------------"
 
 #### to write in logpre.txt
 log = open("logpre.txt","a")
-log.write("----------------------\n")
-log.write("-----dataSingleElectron\n")
-log.write("TotalEventNumber = "+n_events)
-log.write ("\n n_hlt pass = ", n_hlt)
-log.write( "\nn_singleEle pass = "+ n_singleEle)
-log.write("\nn_pre selection = "+n_pre)
+log.write("############################################################\n")
+log.write("%s"%datetime.datetime.now())
+log.write("\n-----dataSingleElectron----------\n")
+log.write("TotalEventNumber = %s"%n_events)
+log.write ("\n n_hlt pass = %s"% n_hlt)
+log.write( "\nn_singleEle pass =%s "%n_singleEle)
+log.write("\nn_pre selection = %s"%n_pre)
 log.write( "\n----------------------\n\n")
 log.close()
 
