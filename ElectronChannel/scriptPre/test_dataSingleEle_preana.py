@@ -13,6 +13,7 @@ from ROOT import *
 from array import array
 from leptonANA.ElectronChannel.ana_muon import *
 from leptonANA.ElectronChannel.ana_ele import *
+from leptonANA.ElectronChannel.ana_jet import *
 
 sw = ROOT.TStopwatch()
 sw.Start()
@@ -103,7 +104,7 @@ for i in range(n_events):
     jetlist =[]
     bjetlist=[]
     for j in range(chain_in.nJet):
-        if chain_in.jetPt[j]>30 and abs(chain_in.jetEta[j])<2.4 and chain_in.jetPFLooseId[j]:
+        if good_LooseJet(chain_in.jetPt[j],chain_in.jetEta[j], chain_in.jetPFLooseId[j]):
             n_jet+=1
             jetlist.append(j)
             if chain_in.jetpfCombinedInclusiveSecondaryVertexV2BJetTags[j]>0.89:
