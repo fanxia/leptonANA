@@ -12,20 +12,24 @@ import ROOT
 from ROOT import *
 from array import array
 from leptonANA.ElectronChannel.ana_muon import *
+from leptonANA.ElectronChannel.ana_ele import *
+from leptonANA.ElectronChannel.ana_jet import *
 
 sw = ROOT.TStopwatch()
 sw.Start()
 print "start"
 chain_in = ROOT.TChain("ggNtuplizer/EventTree")
 #chain_in.Add("../datasamples/SingleElectron_Run2015D_PromptReco-v4_25ns_JSON_Silver_1915pb_miniAOD__data_example.root")
-chain_in.Add("root://eoscms.cern.ch//eos/cms/store/group/phys_smp/ggNtuples/13TeV/job_data_ggNtuple_SingleElectron_Run2015D_PromptReco-v4_25ns_JSON_Silver_1915pb_miniAOD.root")
-chain_in.Add("root://eoscms.cern.ch//eos/cms/store/group/phys_smp/ggNtuples/13TeV/job_data_ggNtuple_SingleElectron_Run2015D_05Oct2015_25ns_JSON_Silver_1915pb_miniAOD.root")
-chain_in.Add("root://eoscms.cern.ch//eos/cms/store/group/phys_smp/ggNtuples/13TeV/job_data_ggNtuple_SingleElectron_Run2015C_05Oct2015_25ns_JSON_Silver_1915pb_miniAOD.root")
+chain_in.Add("root://eoscms.cern.ch//store/group/phys_smp/ggNtuples/13TeV/data/V07_04_16_03/data3/ggNtuples/V07_04_16_03/job_SingleEle_Run2015C_Oct05_miniAOD.root")
+chain_in.Add("root://eoscms.cern.ch//store/group/phys_smp/ggNtuples/13TeV/data/V07_04_16_03/data3/ggNtuples/V07_04_16_03/job_SingleEle_Run2015D_PR_v4_miniAOD.root")
+chain_in.Add("root://eoscms.cern.ch//store/group/phys_smp/ggNtuples/13TeV/data/V07_04_16_03/data3/ggNtuples/V07_04_16_03/job_SingleEle_Run2015D_Oct05_miniAOD.root")
+
 chain_in.SetBranchStatus("tau*",0)
 n_events = chain_in.GetEntries()
 print"Total events for processing: ",n_events
 
 dd=datetime.datetime.now().strftime("%b%d")
+log = open("logpre.txt","a")
 #os.mkdir("Output_SingleEle_v315",0755)
 os.system('mkdir -p ../preselected/Output_dataSingleEle'+dd)
 os.chdir("../preselected/Output_dataSingleEle"+dd)
@@ -33,12 +37,12 @@ os.chdir("../preselected/Output_dataSingleEle"+dd)
 
 #------------
 
-pre_SingleElePt = ROOT.TH1F("pre_SingleElePt","pre_SingleElePt",100,0,1000)
-pre_SingleEleEta = ROOT.TH1F("pre_SingleEleEta","pre_SingleEleEta",60,-3,3)
-pre_nJet = ROOT.TH1F("pre_nJet","pre_nJet",15,0,15)
-preMET = ROOT.TH1F("preMET","preMET",100,0,1000)
-pre_LeadBjetPt = ROOT.TH1F("pre_LeadBjetPt","pre_LeadBjetPt",100,0,1000)
-pre_nJet_nbJet = ROOT.TH2F("pre_nJet_nbJet","pre_nJet_nbJet",20,0,20,10,0,10)
+# pre_SingleElePt = ROOT.TH1F("pre_SingleElePt","pre_SingleElePt",100,0,1000)
+# pre_SingleEleEta = ROOT.TH1F("pre_SingleEleEta","pre_SingleEleEta",60,-3,3)
+# pre_nJet = ROOT.TH1F("pre_nJet","pre_nJet",15,0,15)
+# preMET = ROOT.TH1F("preMET","preMET",100,0,1000)
+# pre_LeadBjetPt = ROOT.TH1F("pre_LeadBjetPt","pre_LeadBjetPt",100,0,1000)
+# pre_nJet_nbJet = ROOT.TH2F("pre_nJet_nbJet","pre_nJet_nbJet",20,0,20,10,0,10)
 
 file_out = ROOT.TFile("reduced_dataSingleEle.root","recreate")
 dir_out = file_out.mkdir("ggNtuplizer")
@@ -46,11 +50,12 @@ dir_out.cd()
 tree_out = chain_in.CloneTree(0)
 tree_out.SetName("EventTree_pre")
 
+n_goodvtx=0
 n_hlt=0
 n_singleEle=0
 n_pre=0
 
-#for i in range(1000):
+#for i in range(10000):
 for i in range(n_events):
     chain_in.GetEntry(i)
     
@@ -60,8 +65,9 @@ for i in range(n_events):
 ##----------------0.5Vertex clean
 
 #    if abs(chain_in.vtz)>24 or abs(chain_in.rho)>2: continue     //error here since the rho is not the "rho"
-
-
+    if not chain_in.hasGoodVtx:
+        continue
+    n_goodvtx+=1
 # -----------------1.HLT selection(HLT_Ele23_WPLoose_Gsf_v)
 
     hltele = chain_in.HLTEleMuX>>6&1
@@ -74,10 +80,10 @@ for i in range(n_events):
     n_tightEle=0
     n_looseEle=0
     for e in range(chain_in.nEle):
-        if chain_in.elePt[e]>30 and (chain_in.eleIDbit[e]>>3&1)==1 and abs(chain_in.eleEta[e])<2.5:
+        if good_TightEle(chain_in.elePt[e],chain_in.eleEta[e],chain_in.eleIDbit[e]):
             n_tightEle+=1
-            ele_ind=e
-        if chain_in.elePt[e]>10 and (chain_in.eleIDbit[e]>>1&1)==1 and abs(chain_in.eleEta[e])<2.5:
+#            ele_ind=e
+        if good_LooseEle(chain_in.elePt[e],chain_in.eleEta[e],chain_in.eleIDbit[e]):
             n_looseEle+=1
     if n_tightEle !=1 or n_looseEle !=1:
         continue
@@ -86,7 +92,9 @@ for i in range(n_events):
     for m in range(chain_in.nMu):
         muPFIso=muPFRelCombIso(chain_in.muPt[m],chain_in.muPFChIso[m],chain_in.muPFNeuIso[m],chain_in.muPFPhoIso[m],chain_in.muPFPUIso[m])
 #        print "iso",i,"---",muPFIso
-        if chain_in.muPt[m]>10 and abs(chain_in.muEta[m])<2.5 and chain_in.muIsLooseID[m] and muPFIso<0.25:
+#        if chain_in.muPt[m]>10 and abs(chain_in.muEta[m])<2.5 and chain_in.muIsLooseID[m] and muPFIso<0.25:
+
+        if good_LooseMu(chain_in.muPt[m],chain_in.muEta[m],chain_in.muIsLooseID[m],muPFIso):
             n_looseMu+=1
     if n_looseMu !=0:
         continue
@@ -97,30 +105,30 @@ for i in range(n_events):
 #--------------------1+2+3.at least 3 jets and 1 bjet
     n_jet=0
     n_bjet=0
-    jetlist =[]
-    bjetlist=[]
+ #   jetlist =[]
+ #   bjetlist=[]
     for j in range(chain_in.nJet):
-        if chain_in.jetPt[j]>30 and abs(chain_in.jetEta[j])<2.4 and chain_in.jetPFLooseId[j]:
+        if good_LooseJet(chain_in.jetPt[j],chain_in.jetEta[j], chain_in.jetPFLooseId[j]):
             n_jet+=1
-            jetlist.append(j)
+ #           jetlist.append(j)
             if chain_in.jetpfCombinedInclusiveSecondaryVertexV2BJetTags[j]>0.89:
                 n_bjet+=1
-                bjetlist.append(j)
+ #               bjetlist.append(j)
     if n_jet<3 or n_bjet<1:
         continue
     n_pre+=1
-    leadbjet_ind=max(bjetlist,key=lambda x: chain_in.jetPt[x])
+#    leadbjet_ind=max(bjetlist,key=lambda x: chain_in.jetPt[x])
     tree_out.Fill()
 #---------------------above for pre-selection---------------------
 
 #-----------------------below for pre plots                                                                                                                                                                                     
 
-    pre_SingleElePt.Fill(chain_in.elePt[ele_ind])
-    pre_SingleEleEta.Fill(chain_in.eleEta[ele_ind])
-    pre_nJet_nbJet.Fill(n_jet,n_bjet)
-    pre_LeadBjetPt.Fill(chain_in.jetPt[leadbjet_ind])
-    preMET.Fill(chain_in.pfMET)
-    pre_nJet.Fill(n_jet)
+#    pre_SingleElePt.Fill(chain_in.elePt[ele_ind])
+#    pre_SingleEleEta.Fill(chain_in.eleEta[ele_ind])
+#    pre_nJet_nbJet.Fill(n_jet,n_bjet)
+#    pre_LeadBjetPt.Fill(chain_in.jetPt[leadbjet_ind])
+#    preMET.Fill(chain_in.pfMET)
+#    pre_nJet.Fill(n_jet)
 
 
 file_out.Write()
@@ -128,6 +136,7 @@ file_out.Close()
 
 print "----------------------"
 print "TotalEventNumber = ", n_events
+print "n_goodvtx pass =", n_goodvtx
 print "n_hlt pass = ", n_hlt
 print "n_singleEle pass = ", n_singleEle
 print "n_pre selection = ",n_pre
@@ -135,11 +144,12 @@ print "----------------------"
 
 
 #### to write in logpre.txt
-log = open("logpre.txt","a")
+
 log.write("############################################################\n")
 log.write("%s"%datetime.datetime.now())
 log.write("\n-----dataSingleElectron----------\n")
 log.write("TotalEventNumber = %s"%n_events)
+log.write("\n n_goodvtx pass = %s"%n_goodvtx)
 log.write ("\n n_hlt pass = %s"% n_hlt)
 log.write( "\nn_singleEle pass =%s "%n_singleEle)
 log.write("\nn_pre selection = %s"%n_pre)
@@ -148,45 +158,45 @@ log.close()
 
 
 
-c=ROOT.TCanvas("c","Plots",800,800)
-c.cd()
-pre_nJet.Draw()
-gPad.SetLogy()
-gPad.Update()
-c.Print("pre_nJet.pdf","pdf")
+# c=ROOT.TCanvas("c","Plots",800,800)
+# c.cd()
+# pre_nJet.Draw()
+# gPad.SetLogy()
+# gPad.Update()
+# c.Print("pre_nJet.pdf","pdf")
 
 
-c.Clear()
-preMET.Draw("e")
-preMET.SetTitle("Elehannel pre:MET;MET (GeV);")
-c.Print("preMET.pdf","pdf")
+# c.Clear()
+# preMET.Draw("e")
+# preMET.SetTitle("Elehannel pre:MET;MET (GeV);")
+# c.Print("preMET.pdf","pdf")
 
 
-c.Clear()
-pre_SingleElePt.Draw()
-pre_SingleElePt.SetTitle("EleChannel pre;ele_Pt (GeV/c);")
-c.Print("pre_SingleEle.pdf","pdf")
+# c.Clear()
+# pre_SingleElePt.Draw()
+# pre_SingleElePt.SetTitle("EleChannel pre;ele_Pt (GeV/c);")
+# c.Print("pre_SingleEle.pdf","pdf")
 
-c.Clear()
-pre_SingleEleEta.Draw()
-pre_SingleEleEta.SetTitle("EleChannel pre;ele_Eta;")
-c.Print("pre_SingleEleEta.pdf","pdf")
+# c.Clear()
+# pre_SingleEleEta.Draw()
+# pre_SingleEleEta.SetTitle("EleChannel pre;ele_Eta;")
+# c.Print("pre_SingleEleEta.pdf","pdf")
 
 
-c.Clear()
-pre_LeadBjetPt.Draw()
-pre_LeadBjetPt.SetTitle("pre;Lead bjet_Pt (GeV/c);")
-c.Print("pre_LeadBjetPt.pdf","pdf")
+# c.Clear()
+# pre_LeadBjetPt.Draw()
+# pre_LeadBjetPt.SetTitle("pre;Lead bjet_Pt (GeV/c);")
+# c.Print("pre_LeadBjetPt.pdf","pdf")
 
-c.Clear()
-c.SetRightMargin(0.14)
-pre_nJet_nbJet.Draw("colz")
-pre_nJet_nbJet.SetTitle("pre;n_Jet;nbJet")
-gStyle.SetOptStat(0)
-gPad.SetLogy(0)
-gPad.SetLogz()                                                
-gPad.Update()
-c.Print("pre_nJet_nbJet.pdf","pdf")
+# c.Clear()
+# c.SetRightMargin(0.14)
+# pre_nJet_nbJet.Draw("colz")
+# pre_nJet_nbJet.SetTitle("pre;n_Jet;nbJet")
+# gStyle.SetOptStat(0)
+# gPad.SetLogy(0)
+# gPad.SetLogz()                                                
+# gPad.Update()
+# c.Print("pre_nJet_nbJet.pdf","pdf")
 
 sw.Stop()
 print "Real time: " + str(sw.RealTime() / 60.0) + " minutes"

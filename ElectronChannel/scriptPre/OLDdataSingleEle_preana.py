@@ -12,25 +12,23 @@ import ROOT
 from ROOT import *
 from array import array
 from leptonANA.ElectronChannel.ana_muon import *
-from leptonANA.ElectronChannel.ana_ele import *
-from leptonANA.ElectronChannel.ana_jet import *
 
 sw = ROOT.TStopwatch()
 sw.Start()
 print "start"
 chain_in = ROOT.TChain("ggNtuplizer/EventTree")
-chain_in.Add("../datasamples/SingleElectron_Run2015D_PromptReco-v4_25ns_JSON_Silver_1915pb_miniAOD__data_example.root")
-#chain_in.Add("root://eoscms.cern.ch//eos/cms/store/group/phys_smp/ggNtuples/13TeV/job_data_ggNtuple_SingleElectron_Run2015D_PromptReco-v4_25ns_JSON_Silver_1915pb_miniAOD.root")
-#chain_in.Add("root://eoscms.cern.ch//eos/cms/store/group/phys_smp/ggNtuples/13TeV/job_data_ggNtuple_SingleElectron_Run2015D_05Oct2015_25ns_JSON_Silver_1915pb_miniAOD.root")
-#chain_in.Add("root://eoscms.cern.ch//eos/cms/store/group/phys_smp/ggNtuples/13TeV/job_data_ggNtuple_SingleElectron_Run2015C_05Oct2015_25ns_JSON_Silver_1915pb_miniAOD.root")
+#chain_in.Add("../datasamples/SingleElectron_Run2015D_PromptReco-v4_25ns_JSON_Silver_1915pb_miniAOD__data_example.root")
+chain_in.Add("root://eoscms.cern.ch//store/group/phys_smp/ggNtuples/13TeV/data/V07_04_16_03/data3/ggNtuples/V07_04_16_03/job_SingleEle_Run2015C_Oct05_miniAOD.root")
+chain_in.Add("root://eoscms.cern.ch//store/group/phys_smp/ggNtuples/13TeV/data/V07_04_16_03/data3/ggNtuples/V07_04_16_03/job_SingleEle_Run2015D_PR_v4_miniAOD.root")
+chain_in.Add("root://eoscms.cern.ch//store/group/phys_smp/ggNtuples/13TeV/data/V07_04_16_03/data3/ggNtuples/V07_04_16_03/job_SingleEle_Run2015D_Oct05_miniAOD.root")
 chain_in.SetBranchStatus("tau*",0)
 n_events = chain_in.GetEntries()
 print"Total events for processing: ",n_events
 
 dd=datetime.datetime.now().strftime("%b%d")
 #os.mkdir("Output_SingleEle_v315",0755)
-#os.system('mkdir -p ../preselected/Output_dataSingleEle'+dd)
-#os.chdir("../preselected/Output_dataSingleEle"+dd)
+os.system('mkdir -p ../preselected/Output_dataSingleEle'+dd)
+os.chdir("../preselected/Output_dataSingleEle"+dd)
 
 
 #------------
@@ -62,8 +60,8 @@ for i in range(n_events):
 ##----------------0.5Vertex clean
 
 #    if abs(chain_in.vtz)>24 or abs(chain_in.rho)>2: continue     //error here since the rho is not the "rho"
-#    if not hasGoodVtx:
-#        continue
+    if not chain_in.hasGoodVtx:
+        continue
 # -----------------1.HLT selection(HLT_Ele23_WPLoose_Gsf_v)
 
     hltele = chain_in.HLTEleMuX>>6&1
@@ -76,10 +74,10 @@ for i in range(n_events):
     n_tightEle=0
     n_looseEle=0
     for e in range(chain_in.nEle):
-        if good_TightEle(chain_in.elePt[e],chain_in.eleEta[e],chain_in.eleIDbit[e]):
+        if chain_in.elePt[e]>30 and (chain_in.eleIDbit[e]>>3&1)==1 and abs(chain_in.eleEta[e])<2.5:
             n_tightEle+=1
             ele_ind=e
-        if good_LooseEle(chain_in.elePt[e],chain_in.eleEta[e],chain_in.eleIDbit[e]):
+        if chain_in.elePt[e]>10 and (chain_in.eleIDbit[e]>>1&1)==1 and abs(chain_in.eleEta[e])<2.5:
             n_looseEle+=1
     if n_tightEle !=1 or n_looseEle !=1:
         continue
@@ -88,9 +86,7 @@ for i in range(n_events):
     for m in range(chain_in.nMu):
         muPFIso=muPFRelCombIso(chain_in.muPt[m],chain_in.muPFChIso[m],chain_in.muPFNeuIso[m],chain_in.muPFPhoIso[m],chain_in.muPFPUIso[m])
 #        print "iso",i,"---",muPFIso
-#        if chain_in.muPt[m]>10 and abs(chain_in.muEta[m])<2.5 and chain_in.muIsLooseID[m] and muPFIso<0.25:
-
-        if good_LooseMu(chain_in.muPt[m],chain_in.muEta[m],chain_in.muIsLooseID[m],muPFIso<0.25):
+        if chain_in.muPt[m]>10 and abs(chain_in.muEta[m])<2.5 and chain_in.muIsLooseID[m] and muPFIso<0.25:
             n_looseMu+=1
     if n_looseMu !=0:
         continue
@@ -104,7 +100,7 @@ for i in range(n_events):
     jetlist =[]
     bjetlist=[]
     for j in range(chain_in.nJet):
-        if good_LooseJet(chain_in.jetPt[j],chain_in.jetEta[j], chain_in.jetPFLooseId[j]):
+        if chain_in.jetPt[j]>30 and abs(chain_in.jetEta[j])<2.4 and chain_in.jetPFLooseId[j]:
             n_jet+=1
             jetlist.append(j)
             if chain_in.jetpfCombinedInclusiveSecondaryVertexV2BJetTags[j]>0.89:
