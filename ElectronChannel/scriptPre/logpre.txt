@@ -1,1 +1,22 @@
 #used to save pre_run log
+
+
+
+############################################################
+INPUT root://eoscms.cern.ch//eos/cms/store/group/phys_smp/ggNtuples/13TeV/mc/V07_04_16_03/job_spring15_WJetsToLNu_aMCatNLO_miniAOD.root
+2016-03-29 16:15:31.191513
+TotalEventNumber = 24184766
+n_goodvtx pass = 24184705
+n_singleEle pass =1901465 
+n_pre selection = 11901
+----------------------
+
+############################################################
+INPUT root://eoscms.cern.ch//eos/cms/store/group/phys_smp/ggNtuples/13TeV/mc/V07_04_16_03/job_spring15_TT_miniAOD.root
+2016-03-29 16:35:21.954296
+TotalEventNumber = 19757190
+ n_goodvtx pass = 19757182
+n_singleEle pass =1511215 
+n_pre selection = 1036953
+----------------------
+
