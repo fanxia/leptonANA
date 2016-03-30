@@ -20,3 +20,28 @@ n_singleEle pass =1511215
 n_pre selection = 1036953
 ----------------------
 
+############################################################
+INPUT root://eoscms.cern.ch//eos/cms/store/group/phys_smp/ggNtuples/13TeV/mc/V07_04_16_03/job_spring15_TTWToLNu_miniAOD.root
+2016-03-29 17:32:15.573289
+TotalEventNumber = 252908
+n_goodvtx pass = 252908
+n_singleEle pass =34520 
+n_pre selection = 25123
+----------------------
+
+############################################################
+INPUT root://eoscms.cern.ch//eos/cms/store/group/phys_smp/ggNtuples/13TeV/mc/V07_04_16_03/job_spring15_DYJetsToLL_m50_miniAOD.root2016-03-29 21:09:27.696761
+TotalEventNumber = 28747969
+n_goodvtx pass = 28747909
+n_singleEle pass =1915981 
+n_pre selection = 28127
+----------------------
+
+############################################################
+INPUT root://eoscms.cern.ch//eos/cms/store/group/phys_smp/ggNtuples/13TeV/mc/V07_04_16_03/job_spring15_TTG_miniAOD.root2016-03-30 04:28:06.962417
+TotalEventNumber = 4832230
+n_goodvtx pass = 4832226
+n_singleEle pass =394840 
+n_pre selection = 282859
+----------------------
+
