@@ -30,15 +30,8 @@ chain_in.Add(sys.argv[1])
 n_events = chain_in.GetEntries()
 print"Total events for processing: ",n_events
 
-
-log = open("logANA.txt","a")
-log.write("############################################################\n")
-log.write("INPUT %s"%sys.argv[1])
-log.write("\nOutPUT %s\n"%sys.argv[2])
-
 dd=datetime.datetime.now().strftime("%b%d")
-#os.system('mkdir -p ../selected/Output_Selected_dataSingleEle_v318')
-#os.chdir("../selected/Output_Selected_dataSingleEle_v318")
+log = open("logANA.txt","a")
 os.system('mkdir -p ../selected/'+sys.argv[2]+dd)
 os.chdir('../selected/'+sys.argv[2]+dd)
 
@@ -235,56 +228,87 @@ for i in range(n_events):
 #---------------------above for pre-selection---------------------
 
 
-
-#---------------------1+2+3+4.loose photon: singlepho  or diphoton and fake photon: single fake or more fakes
-    pholist1 = [] 
-    fakelist1= []
-    for p in range(chain_in.nPho):
-        if (chain_in.phoIDbit[p]>>0&1)==0:
-            if good_fake(chain_in.rho,chain_in.phoEt[p],chain_in.phoEta[p],chain_in.phoEleVeto[p],chain_in.phoHoverE[p],chain_in.phoSigmaIEtaIEta[p],chain_in.phoPFChIso[p],chain_in.phoPFNeuIso[p],chain_in.phoPFPhoIso[p]):
-                fakelist1.append(p)
-        elif (chain_in.phoIDbit[p]>>0&1)==1:
-            if good_LoosePho(chain_in.phoEt[p],chain_in.phoEta[p],chain_in.phoEleVeto[p]):
-                pholist1.append(p)
-
-
-
 #---------------------photon dR loop----
+    pholist1=[]
+    for p0 in range(chain_in.nPho):
+         dRphoton_ele = dR(chain_in.phoEta[p0],chain_in.eleEta[ele_ind],chain_in.phoPhi[p0],chain_in.elePhi[ele_ind])
+         if dRphoton_ele<=0.3:
+             continue
+         pholist1.append(p0)
+        
 #    pholist2=[]
 #    for p1 in pholist1:
-# #        dRphoton_ele = ((chain_in.phoEta[p1]-chain_in.eleEta[ele_ind])**2+(chain_in.phoPhi[p1]-chain_in.elePhi[ele_ind])**2)**0.5
-#         dRphoton_ele = dR(chain_in.phoEta[p1],chain_in.eleEta[ele_ind],chain_in.phoPhi[p1],chain_in.elePhi[ele_ind])
-#         if dRphoton_ele<=0.3:
-#             continue
-#         pholist2.append(p1)
-        
-#     pholist3=[]
-#     for p2 in pholist2:
-#         w = 1
-#         for j in jetlist:
-#             dRphoton_jet = dR(chain_in.phoEta[p2],chain_in.jetEta[j],chain_in.phoPhi[p2],chain_in.jetPhi[j])
-# #            if dRphoton_jet<=0.7:
-# #                w=0
-# #                break
-#         if w==1:
-#             pholist3.append(p2)
+#        w = 1
+#        for j in jetlist:
+#             dRphoton_jet = dR(chain_in.phoEta[p1],chain_in.jetEta[j],chain_in.phoPhi[p1],chain_in.jetPhi[j])
+#             if dRphoton_jet<=0.3:
+#                 w=0
+#                 break
+#        if w==1:
+#             pholist2.append(p1)
 
-#     pholist=[]
-#     for p3 in pholist3:
+#    pholist3=[]
+#    for p2 in pholist2:
 #         w = 1
-#         for p4 in pholist3:
-#             dRphoton_photon = dR(chain_in.phoEta[p3],chain_in.phoEta[p4],chain_in.phoPhi[p3],chain_in.phoPhi[p4])
-#             if dRphoton_photon<=0.5 and p4!=p3:
+#         for p3 in pholist2:
+#             dRphoton_photon = dR(chain_in.phoEta[p3],chain_in.phoEta[p2],chain_in.phoPhi[p3],chain_in.phoPhi[p2])
+#             if dRphoton_photon<=0.3 and p2!=p3:
 #                 w=0
 #                 break
 #         if w==1:
-#             pholist.append(p3)
+#             pholist3.append(p2)
+
+
+
+#---------------------1+2+3+4.loose photon: singlepho  or diphoton and fake photon: single fake or more fakes
+    pholist = [] 
+    fakelist= []
+    for p in pholist1:
+        if (chain_in.phoIDbit[p]>>0&1)==0:
+            if good_fake(chain_in.rho,chain_in.phoEt[p],chain_in.phoEta[p],chain_in.phoEleVeto[p],chain_in.phoHoverE[p],chain_in.phoSigmaIEtaIEta[p],chain_in.phoPFChIso[p],chain_in.phoPFNeuIso[p],chain_in.phoPFPhoIso[p]):
+                fakelist.append(p)
+        elif (chain_in.phoIDbit[p]>>0&1)==1:
+            if good_LoosePho(chain_in.phoEt[p],chain_in.phoEta[p],chain_in.phoEleVeto[p]):
+                pholist.append(p)
+
+
+
+
+#---------------------fake dR loop----
+    # fakelist2=[]
+    # for f1 in fakelist1:
+    #      dRfake_ele = dR(chain_in.phoEta[f1],chain_in.eleEta[ele_ind],chain_in.phoPhi[f1],chain_in.elePhi[ele_ind])
+    #      if dRfake_ele<=0.3:
+    #          continue
+    #      fakelist2.append(f1)
+        
+    # fakelist3=[]
+    # for f2 in fakelist2:
+    #     w = 1
+    #     for j in jetlist:
+    #          dRfaket_jet = dR(chain_in.phoEta[f2],chain_in.jetEta[j],chain_in.phoPhi[f2],chain_in.jetPhi[j])
+    #          if dRfaket_jet<=0.3:
+    #              w=0
+    #              break
+    #     if w==1:
+    #          fakelist3.append(f2)
+
+    # fakelist=[]
+    # for f3 in fakelist3:
+    #      w = 1
+    #      for f4 in fakelist3:
+    #          dRfake_fake = dR(chain_in.phoEta[f3],chain_in.phoEta[f4],chain_in.phoPhi[f3],chain_in.phoPhi[f4])
+    #          if dRfake_fake<=0.3 and f4!=f3:
+    #              w=0
+    #              break
+    #      if w==1:
+    #          fakelist.append(f3)
 
 
 #-----------------------below for pre plots
 
-    pholist=pholist1
-    fakelist=fakelist1
+#    pholist=pholist1
+#    fakelist=fakelist1
 
     pre_nPho.Fill(len(pholist))
     pre_nFake.Fill(len(fakelist))
@@ -345,7 +369,7 @@ for i in range(n_events):
         SR2_nJet_nbJet.Fill(n_jet,n_bjet)
 
 #------------------------------below for control region 1&2 depends on fake numbers
-    if len(fakelist)==1:
+    if len(fakelist)==1 and len(pholist)==0:
         singlefake_ind=fakelist[0]
         cr1fake_index[0]=singlefake_ind
         (n_CR1)+=1
@@ -366,7 +390,7 @@ for i in range(n_events):
         CR1_SingleElePt.Fill(chain_in.elePt[ele_ind])
         CR1_LeadBjetPt.Fill(chain_in.jetPt[leadbjet_ind])
 
-    elif len(fakelist)>=2:    
+    elif len(fakelist)>=2 and len(pholist)==0:    
         leadfake_ind=max(fakelist,key=lambda x: chain_in.phoEt[x])
         trailfake_ind=max([pp for pp in fakelist if pp!=leadfake_ind],key=lambda x: chain_in.phoEt[x])
         cr2fake_index[0]=leadfake_ind
@@ -407,7 +431,9 @@ print "----------------------"
 
 
 #### to write in logpre.txt
-
+log.write("############################################################\n")
+log.write("INPUT %s"%sys.argv[1])
+log.write("\nOutPUT %s\n"%sys.argv[2])
 log.write("%s"%datetime.datetime.now())
 log.write("\nTotalEventNumber = %s"%n_events)
 log.write( "\nn_singleEle pass =%s "%n_singleEle)
