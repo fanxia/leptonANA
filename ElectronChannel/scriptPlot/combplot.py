@@ -8,11 +8,13 @@ import time
 import datetime
 from ROOT import *
 from array import array
+from prettytable import PrettyTable
 from leptonANA.ElectronChannel.ana_muon import *
 from leptonANA.ElectronChannel.Utilfunc import *
 
 #-----------xsec and lumi and fraction---------
-lumi_data=1.0
+lumi_data=2.69
+
 
 xsec_ttjets=831.76
 lumi_ttjets=51.44
@@ -44,9 +46,9 @@ frac_ttg=lumi_data/lumi_ttg
 
 # stack plot module
 
-def stack(plotname,branchname,data,dataname,bkg1,bkg1name,frac1,bkg2,bkg2name,frac2,bkg3,bkg3name,frac3,bkg4,bkg4name,frac4,bkg5,bkg5name,frac5):
+def stack(plotname,branchname,xname,yname,data,dataname,bkg1,bkg1name,frac1,bkg2,bkg2name,frac2,bkg3,bkg3name,frac3,bkg4,bkg4name,frac4,bkg5,bkg5name,frac5):
 
-    c=ROOT.TCanvas("c","Plots",800,800)
+    c=ROOT.TCanvas("c","Plots",1000,800)
     gStyle.SetOptStat(0)
     gPad.SetLogy()
     c.cd()
@@ -58,33 +60,33 @@ def stack(plotname,branchname,data,dataname,bkg1,bkg1name,frac1,bkg2,bkg2name,fr
 #    histmc2=ROOT.TH1F("histmc2","histmc2",100,0,1000)
 
     bkg1.Draw(branchname+">>histmc1")
-    histmc1.SetFillColor(kRed-7)
+    histmc1.SetFillColor(kGreen+1)
     histmc1.Scale(frac1)
     hs.Add(histmc1)
 
     bkg2.Draw(branchname+">>histmc2")
-    histmc2.SetFillColor(kBlue-10)
+    histmc2.SetFillColor(kOrange)
     histmc2.Scale(frac2)
     hs.Add(histmc2)
 
     bkg3.Draw(branchname+">>histmc3")
-    histmc3.SetFillColor(kOrange)
+    histmc3.SetFillColor(kAzure-3)
     histmc3.Scale(frac3)
     hs.Add(histmc3)
 
     bkg4.Draw(branchname+">>histmc4")
-    histmc4.SetFillColor(kViolet-1)
+    histmc4.SetFillColor(kCyan)
     histmc4.Scale(frac4)
     hs.Add(histmc4)
 
     bkg5.Draw(branchname+">>histmc5")
-    histmc5.SetFillColor(kGreen+1)
+    histmc5.SetFillColor(kPink+1)
     histmc5.Scale(frac5)
     hs.Add(histmc5)
 
 
 
-    hs.SetTitle(plotname+";;")
+
 
 
 #--------------data--------------
@@ -100,7 +102,7 @@ def stack(plotname,branchname,data,dataname,bkg1,bkg1name,frac1,bkg2,bkg2name,fr
     hs.SetMinimum(hs.GetMinimum("nostack"))
     hs.Draw()
     histdata.Draw("e same")
-
+    hs.SetTitle("Electron Channel: "+plotname+";"+xname+";"+yname)
 
 
     leg=ROOT.TLegend(0.6,0.8,0.9,0.9)
@@ -108,6 +110,9 @@ def stack(plotname,branchname,data,dataname,bkg1,bkg1name,frac1,bkg2,bkg2name,fr
     leg.AddEntry(histdata,dataname,"le");
     leg.AddEntry(histmc1,bkg1name,"f");
     leg.AddEntry(histmc2,bkg2name,"f");
+    leg.AddEntry(histmc3,bkg3name,"f");
+    leg.AddEntry(histmc4,bkg4name,"f");
+    leg.AddEntry(histmc5,bkg5name,"f");
 
     leg.Draw();
 
@@ -240,14 +245,14 @@ def stackpho(plotname,branchname,region,data,dataname,bkg1,bkg1name,frac1,bkg2,b
 sw = ROOT.TStopwatch()
 sw.Start()
 print "start"
-data=TFile.Open("../selected/selected_dataSingleEle_321/selected_dataSingleEle_321.root")
+data=TFile.Open("../selected/dataSingleEleApr01/dataSingleEle.root")
 #mcttjets=TFile.Open("../selected/selected_mcttjets_321/selected_mcttjets_321.root")
 #mcttwjets=TFile.Open("../selected/selected_mcttwjets_321/selected_mcttwjets_321.root")
-mcttg=TFile.Open("../selected/mcttgMar30/mcttg.root")
-mcttw=TFile.Open("../selected/mcttwMar30/mcttw.root")
-mctt=TFile.Open("../selected/mcttMar30/mctt.root")
-mcdyjets=TFile.Open("../selected/mcdyjetstollMar30/mcdyjetstoll.root")
-mcwjets=TFile.Open("../selected/mcwjetsMar30/mcwjets.root")
+mcttg=TFile.Open("../selected/mcttgApr01/mcttg.root")
+mcttw=TFile.Open("../selected/mcttwApr01/mcttw.root")
+mctt=TFile.Open("../selected/mcttApr01/mctt.root")
+mcdyjets=TFile.Open("../selected/mcdyjetstollApr01/mcdyjetstoll.root")
+mcwjets=TFile.Open("../selected/mcwjetsApr01/mcwjets.root")
 
 # predata=data.Get("ggNtuplizer/EventTree_pre")
 # premcttjets=mcttjets.Get("ggNtuplizer/EventTree_pre")
@@ -302,13 +307,71 @@ cr1mcwjets=mcwjets.Get("EventTree_CR1")
 cr2mcwjets=mcwjets.Get("EventTree_CR2")
 
 
+#-----------------output dir and files
+
 dd=datetime.datetime.now().strftime("%b%d")
 os.system('mkdir -p plot_'+dd)
 os.chdir('plot_'+dd)
+f = open("summarytable.txt","w")
+
+
+
+
+
+#--------------------summary table----------------------------------
+
+sumt=PrettyTable()
+dataNpre=predata.GetEntries()
+dataNsr1=sr1data.GetEntries()
+dataNsr2=sr2data.GetEntries()
+
+mcttNpre=premctt.GetEntries()*frac_tt
+mcttNsr1=sr1mctt.GetEntries()*frac_tt
+mcttNsr2=sr2mctt.GetEntries()*frac_tt
+
+
+mcttwNpre=premcttw.GetEntries()*frac_ttw
+mcttwNsr1=sr1mcttw.GetEntries()*frac_ttw
+mcttwNsr2=sr2mcttw.GetEntries()*frac_ttw
+
+
+mcttgNpre=premcttg.GetEntries()*frac_ttg
+mcttgNsr1=sr1mcttg.GetEntries()*frac_ttg
+mcttgNsr2=sr2mcttg.GetEntries()*frac_ttg
+
+
+mcdyjetsNpre=premcdyjets.GetEntries()*frac_dyjets
+mcdyjetsNsr1=sr1mcdyjets.GetEntries()*frac_dyjets
+mcdyjetsNsr2=sr2mcdyjets.GetEntries()*frac_dyjets
+
+
+mcwjetsNpre=premcwjets.GetEntries()*frac_wjets
+mcwjetsNsr1=sr1mcwjets.GetEntries()*frac_wjets
+mcwjetsNsr2=sr2mcwjets.GetEntries()*frac_wjets
+
+
+bkgsumNpre=mcttNpre+mcttwNpre+mcttgNpre+mcdyjetsNpre+mcwjetsNpre
+bkgsumNsr1=mcttNsr1+mcttwNsr1+mcttgNsr1+mcdyjetsNsr1+mcwjetsNsr1
+bkgsumNsr2=mcttNsr2+mcttwNsr2+mcttgNsr2+mcdyjetsNsr2+mcwjetsNsr2
+
+
+sumt.field_names = ["Channel","Pre_selection","SR1","SR2"]
+sumt.add_row(["tt",mcttNpre,mcttNsr1,mcttNsr2])
+sumt.add_row(["ttw",mcttwNpre,mcttwNsr1,mcttwNsr2])
+sumt.add_row(["ttg",mcttgNpre,mcttgNsr1,mcttgNsr2])
+sumt.add_row(["zjets",mcdyjetsNpre,mcdyjetsNsr1,mcdyjetsNsr2])
+sumt.add_row(["wjets",mcwjetsNpre,mcwjetsNsr1,mcwjetsNsr2])
+sumt.add_row(["bkgs sum",bkgsumNpre,bkgsumNsr1,bkgsumNsr2])
+sumt.add_row(["-","-","-","-"])
+sumt.add_row(["data",dataNpre,dataNsr1,dataNsr2])
+
+f.write("%s"%sumt)
+f.close()
+
 
 #------------pre plot
 #--pfMET
-stack("Pre_pfMET","pfMET",predata,"DataSingleEle",premctt,"bkg_tt",frac_tt,premcttg,"bkg_ttg",frac_ttg,premcttw,"bkg_ttw",frac_ttw,premcwjets,"bkg_wjets",frac_wjets,premcdyjets,"bkg_zjets",frac_dyjets)
+stack("Pre-selection_pfMET","pfMET","MET(GeV)","number of events",predata,"DataSingleEle",premcttw,"bkg_ttw",frac_ttw,premcttg,"bkg_ttg",frac_ttg,premcdyjets,"bkg_zjets",frac_dyjets,premcwjets,"bkg_wjets",frac_wjets,premctt,"bkg_tt",frac_tt)
 #--elePt and eleEta
 stackEle("pre_","elePt",predata,"SingleEle",premcttwjets,"bkg_ttwjets",frac_ttwjets,premcttjets,"bkg_ttjets",frac_ttjets)
 stackEle("pre_","eleEta",predata,"SingleEle",premcttwjets,"bkg_ttwjets",frac_ttwjets,premcttjets,"bkg_ttjets",frac_ttjets)
@@ -340,6 +403,10 @@ stackpho("SR2_Leading","phoEta",21,sr2data,"SingleEle",sr2mcttwjets,"bkg_ttwjets
 #--Trailing phoEt and Eta
 stackpho("SR2_Trailing","phoEt",22,sr2data,"SingleEle",sr2mcttwjets,"bkg_ttwjets",frac_ttwjets,sr2mcttjets,"bkg_ttjets",frac_ttjets)
 stackpho("SR2_Trailing","phoEta",22,sr2data,"SingleEle",sr2mcttwjets,"bkg_ttwjets",frac_ttwjets,sr2mcttjets,"bkg_ttjets",frac_ttjets)
+
+
+
+
 
 
 
