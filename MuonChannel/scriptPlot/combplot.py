@@ -49,6 +49,7 @@ frac_ttg=lumi_data/lumi_ttg
 def stack(plotname,branchname,xname,yname,data,dataname,bkg1,bkg1name,frac1,bkg2,bkg2name,frac2,bkg3,bkg3name,frac3,bkg4,bkg4name,frac4,bkg5,bkg5name,frac5):
 
     c=ROOT.TCanvas("c","Plots",1000,800)
+    c.Clear
     gStyle.SetOptStat(0)
     gPad.SetLogy()
     c.cd()
@@ -74,10 +75,11 @@ def stack(plotname,branchname,xname,yname,data,dataname,bkg1,bkg1name,frac1,bkg2
     histmc3.Scale(frac3)
     hs.Add(histmc3)
 
-    bkg4.Draw(branchname+">>histmc4")
-    histmc4.SetFillColor(kCyan)
-    histmc4.Scale(frac4)
-    hs.Add(histmc4)
+    if bkg4.GetEntries() != 0:
+        bkg4.Draw(branchname+">>histmc4")
+        histmc4.SetFillColor(kCyan)
+        histmc4.Scale(frac4)
+        hs.Add(histmc4)
 
     bkg5.Draw(branchname+">>histmc5")
     histmc5.SetFillColor(kPink+1)
@@ -98,8 +100,10 @@ def stack(plotname,branchname,xname,yname,data,dataname,bkg1,bkg1name,frac1,bkg2
     
 #---------------draw--------
 #    hs.SetMinimum(hs.GetMinimum())
-    hs.SetMaximum(hs.GetMaximum()*1.2)
+#    hs.SetMaximum(hs.GetMaximum()*1.2)
+    hs.SetMaximum(3.0)
     hs.SetMinimum(hs.GetMinimum("nostack"))
+    hs.SetMinimum(0.01)
     hs.Draw()
     histdata.Draw("e same")
     hs.SetTitle("Muon Channel: "+plotname+";"+xname+";"+yname)
@@ -111,7 +115,9 @@ def stack(plotname,branchname,xname,yname,data,dataname,bkg1,bkg1name,frac1,bkg2
     leg.AddEntry(histmc1,bkg1name,"f");
     leg.AddEntry(histmc2,bkg2name,"f");
     leg.AddEntry(histmc3,bkg3name,"f");
-    leg.AddEntry(histmc4,bkg4name,"f");
+    if bkg4.GetEntries()!=0:
+        leg.AddEntry(histmc4,bkg4name,"f");
+
     leg.AddEntry(histmc5,bkg5name,"f");
 
     leg.Draw();
@@ -125,71 +131,63 @@ def stack(plotname,branchname,xname,yname,data,dataname,bkg1,bkg1name,frac1,bkg2
 
 
 
-def stackMu(plotname,branchname,data,dataname,bkg1,bkg1name,frac1,bkg2,bkg2name,frac2):
+def stackMu(plotname,branchname,data,dataname,bkglist):
+    print "start stackmu"
 
-    c=ROOT.TCanvas("c","Plots",800,800)
+    c=ROOT.TCanvas("c","Plots",1000,1000)
     gStyle.SetOptStat(0)
 #    gPad.SetLogy()
     c.cd()
 
 #---------------bkg stack-------
-
-#----------------check point---------------
-#    for bkg in [bkg1,bkg2]:
-    for i in [1,2]:
-
-        print (bkg+'i').GetEntries()
-
-
-
-
-
-
-
-
-
-
-#----------------------------------
-    bkg1mu_ind=bkg1.mu_index
-    bkg2mu_ind=bkg2.mu_index
     hs=ROOT.THStack("hs","plotname")
+    leg=ROOT.TLegend(0.6,0.8,0.9,0.9)    
+    for bkg in bkglist:
+        print "get bkg input"
+        histmc=ROOT.TH1F("","",60,-3,3)
+#        histmc=ROOT.TH1F("","",80,0,800)
+#        if bkg[0].GetEntries()==0:
+#            continue
 
-    bkg1.Draw(branchname+"[bkg1mu_ind]>>histmc1")
-    histmc1.SetFillColor(kRed-7)
-    histmc1.Scale(frac1)
-    hs.Add(histmc1)
+        for i in range(bkg[0].GetEntries()):
+            bkg[0].GetEntry(i)
+            mu_ind=bkg[0].mu_index
+            histmc.Fill(getattr(bkg[0],branchname)[mu_ind])
+        print "drawhistmc"
+#        histmc.Draw()
+        histmc.SetFillColor(bkg[3])
+        histmc.Scale(bkg[2])
+        hs.Add(histmc)
+        leg.AddEntry(histmc,bkg[1],"f")
+    print "get bkg done"
 
-    bkg2.Draw(branchname+"[bkg2mu_ind]>>histmc2")
-    histmc2.SetFillColor(kBlue-10)
-    histmc2.Scale(frac2)
-    hs.Add(histmc2)
-
-    hs.SetTitle(plotname+branchname+";;")
 
 #--------------data--------------
-    datamu_ind=data.mu_index
-    data.Draw(branchname+"[datamu_ind]>>histdata")
+    histdata=ROOT.TH1F("","",60,-3,3)
+#    histdata=ROOT.TH1F("","",80,0,800)
+    for j in range(data.GetEntries()):
+        data.GetEntry(j)
+        datamu_ind=data.mu_index
+        histdata.Fill(getattr(data,branchname)[datamu_ind])
+    histdata.Draw()
     histdata.SetLineColor(kBlack)
     histdata.SetLineWidth(2)
-    
+    print "maxdata",histdata.GetMaximum()
+    leg.AddEntry(histdata,dataname,"le");    
 #--------------signal----------
     
 #---------------draw--------
     hs.SetMaximum(histdata.GetMaximum()*1.1)
-    hs.SetMinimum(hs.GetMinimum("nostack"))
+    hs.SetTitle("MuonChannel:"+plotname+";"+branchname)
+#    hs.SetMaximum(10000)
+    hs.SetMinimum(0.01)
+#    hs.SetMinimum(hs.GetMinimum("nostack"))
+    gPad.SetLogy()
     hs.Draw()
     histdata.Draw("e same")
 
-    leg=ROOT.TLegend(0.6,0.8,0.9,0.9)
-#    leg->SetHeader();
-    leg.AddEntry(histdata,dataname,"le");
-    leg.AddEntry(histmc1,bkg1name,"f");
-    leg.AddEntry(histmc2,bkg2name,"f");
-
     leg.Draw();
-
-#    gPad.Update()
-    c.Print(plotname+branchname+".png","png")
+    c.Print(plotname+".png","png")
     c.Clear()
 # end stackmu plot module
 
@@ -398,7 +396,6 @@ sumt.add_row(["bkgs sum",bkgsumNpre,bkgsumNsr1,bkgsumNsr2])
 sumt.add_row(["-","-","-","-"])
 sumt.add_row(["data",dataNpre,dataNsr1,dataNsr2])
 
-
 sumtt.field_names = ["Channel","Pre_selection","CR1","CR2"]
 sumtt.add_row(["tt",mcttNpre,mcttNcr1,mcttNcr2])
 sumtt.add_row(["ttw",mcttwNpre,mcttwNcr1,mcttwNcr2])
@@ -410,7 +407,7 @@ sumtt.add_row(["-","-","-","-"])
 sumtt.add_row(["data",dataNpre,dataNcr1,dataNcr2])
 
 
-f.write("%s/n"%sumt)
+f.write("%s\n"%sumt)
 f.write("%s"%sumtt)
 f.close()
 
@@ -423,36 +420,38 @@ f.close()
 
 
 #--muPt and muEta
-stackMu("pre_","muPt",predata,"SingleMu",premcttw,"bkg_ttw",frac_ttw,premctt,"bkg_tt",frac_tt)
-stackMu("pre_","muEta",predata,"SingleMu",premcttwjets,"bkg_ttwjets",frac_ttwjets,premcttjets,"bkg_ttjets",frac_ttjets)
+#stackMu("Pre-seletion_muPt","muPt",predata,"SingleMu",[[premcttw,"bkg_ttw",frac_ttw,417],[premcttg,"bkg_ttg",frac_ttg,800],[premcdyjets,"bkg_zjets",frac_dyjets,857],[premcwjets,"bkg_wjets",frac_wjets,432],[premctt,"bkg_tt",frac_tt,901]])
+stackMu("Pre-seletion_muEta","muEta",predata,"SingleMu",[[premcttw,"bkg_ttw",frac_ttw,417],[premcttg,"bkg_ttg",frac_ttg,800],[premcdyjets,"bkg_zjets",frac_dyjets,857],[premcwjets,"bkg_wjets",frac_wjets,432],[premctt,"bkg_tt",frac_tt,901]])
 
 
 #------------sr1 plot
 #--pfMET
 #stack("SR1pfMET","pfMET",sr1data,"SingleMu",sr1mcttwjets,"bkg_ttwjets",frac_ttwjets,sr1mcttjets,"bkg_ttjets",frac_ttjets)
-stack("SR1_pfMET","pfMET",sr1data,"DataSingleMu",sr1mctt,"bkg_tt",frac_tt,sr1mcttg,"bkg_ttg",frac_ttg,sr1mcttw,"bkg_ttw",frac_ttw,sr1mcwjets,"bkg_wjets",frac_wjets,sr1mcdyjets,"bkg_zjets",frac_dyjets)
+#stack("SR1_pfMET","pfMET","MET(GeV)","number of events",sr1data,"DataSingleMu",sr1mcttw,"bkg_ttw",frac_ttw,sr1mcttg,"bkg_ttg",frac_ttg,sr1mcdyjets,"bkg_zjets",frac_dyjets,sr1mcwjets,"bkg_wjets",frac_wjets,sr1mctt,"bkg_tt",frac_tt)
 #--muPt and muEta
-stackMu("SR1_","muPt",sr1data,"SingleMu",sr1mcttwjets,"bkg_ttwjets",frac_ttwjets,sr1mcttjets,"bkg_ttjets",frac_ttjets)
-stackMu("SR1_","muEta",sr1data,"SingleMu",sr1mcttwjets,"bkg_ttwjets",frac_ttwjets,sr1mcttjets,"bkg_ttjets",frac_ttjets)
+#stackMu("SR1_muPt","muPt",sr1data,"SingleMu",[[sr1mcttw,"bkg_ttw",frac_ttw,417],[sr1mcttg,"bkg_ttg",frac_ttg,800],[sr1mcdyjets,"bkg_zjets",frac_dyjets,857],[sr1mcwjets,"bkg_wjets",frac_wjets,432],[sr1mctt,"bkg_tt",frac_tt,901]])
+stackMu("SR1_muEta","muEta",sr1data,"SingleMu",[[sr1mcttw,"bkg_ttw",frac_ttw,417],[sr1mcttg,"bkg_ttg",frac_ttg,800],[sr1mcdyjets,"bkg_zjets",frac_dyjets,857],[sr1mcwjets,"bkg_wjets",frac_wjets,432],[sr1mctt,"bkg_tt",frac_tt,901]])
 #--phoEt and Eta
-stackpho("SR1_","phoEt",11,sr1data,"SingleMu",sr1mcttwjets,"bkg_ttwjets",frac_ttwjets,sr1mcttjets,"bkg_ttjets",frac_ttjets)
-stackpho("SR1_","phoEta",11,sr1data,"SingleMu",sr1mcttwjets,"bkg_ttwjets",frac_ttwjets,sr1mcttjets,"bkg_ttjets",frac_ttjets)
+#stackpho("SR1_","phoEt",11,sr1data,"SingleMu",sr1mcttwjets,"bkg_ttwjets",frac_ttwjets,sr1mcttjets,"bkg_ttjets",frac_ttjets)
+#stackpho("SR1_","phoEta",11,sr1data,"SingleMu",sr1mcttwjets,"bkg_ttwjets",frac_ttwjets,sr1mcttjets,"bkg_ttjets",frac_ttjets)
 
 
 
 #------------sr2 plot
 #--pfMET
 #stack("SR2pfMET","pfMET",sr2data,"SingleMu",sr2mcttwjets,"bkg_ttwjets",frac_ttwjets,sr2mcttjets,"bkg_ttjets",frac_ttjets)
-stack("SR2_pfMET","pfMET",sr2data,"DataSingleMu",sr2mctt,"bkg_tt",frac_tt,sr2mcttg,"bkg_ttg",frac_ttg,sr2mcttw,"bkg_ttw",frac_ttw,sr2mcwjets,"bkg_wjets",frac_wjets,sr2mcdyjets,"bkg_zjets",frac_dyjets)
+#stack("SR2_pfMET","pfMET","MET(GeV)","number of events",sr2data,"DataSingleMu",sr2mcttw,"bkg_ttw",frac_ttw,sr2mcttg,"bkg_ttg",frac_ttg,sr2mcdyjets,"bkg_zjets",frac_dyjets,sr2mcwjets,"bkg_wjets",frac_wjets,sr2mctt,"bkg_tt",frac_tt)
+
 #--muPt and muEta
-stackMu("SR2_","muPt",predata,"SingleMu",premcttwjets,"bkg_ttwjets",frac_ttwjets,premcttjets,"bkg_ttjets",frac_ttjets)
-stackMu("SR2_","muEta",predata,"SingleMu",premcttwjets,"bkg_ttwjets",frac_ttwjets,premcttjets,"bkg_ttjets",frac_ttjets)
+#stackMu("SR2_muPt","muPt",sr2data,"SingleMu",[[sr2mcttw,"bkg_ttw",frac_ttw,417],[sr2mcttg,"bkg_ttg",frac_ttg,800],[sr2mcdyjets,"bkg_zjets",frac_dyjets,857],[sr2mcwjets,"bkg_wjets",frac_wjets,432],[sr2mctt,"bkg_tt",frac_tt,901]])
+stackMu("SR2_muEta","muEta",sr2data,"SingleMu",[[sr2mcttw,"bkg_ttw",frac_ttw,417],[sr2mcttg,"bkg_ttg",frac_ttg,800],[sr2mcdyjets,"bkg_zjets",frac_dyjets,857],[sr2mcwjets,"bkg_wjets",frac_wjets,432],[sr2mctt,"bkg_tt",frac_tt,901]])
+#stackMu("SR2_","muEta",predata,"SingleMu",premcttwjets,"bkg_ttwjets",frac_ttwjets,premcttjets,"bkg_ttjets",frac_ttjets)
 #--Leading phoEt and Eta
-stackpho("SR2_Leading","phoEt",21,sr2data,"SingleMu",sr2mcttwjets,"bkg_ttwjets",frac_ttwjets,sr2mcttjets,"bkg_ttjets",frac_ttjets)
-stackpho("SR2_Leading","phoEta",21,sr2data,"SingleMu",sr2mcttwjets,"bkg_ttwjets",frac_ttwjets,sr2mcttjets,"bkg_ttjets",frac_ttjets)
+#stackpho("SR2_Leading","phoEt",21,sr2data,"SingleMu",sr2mcttwjets,"bkg_ttwjets",frac_ttwjets,sr2mcttjets,"bkg_ttjets",frac_ttjets)
+#stackpho("SR2_Leading","phoEta",21,sr2data,"SingleMu",sr2mcttwjets,"bkg_ttwjets",frac_ttwjets,sr2mcttjets,"bkg_ttjets",frac_ttjets)
 #--Trailing phoEt and Eta
-stackpho("SR2_Trailing","phoEt",22,sr2data,"SingleMu",sr2mcttwjets,"bkg_ttwjets",frac_ttwjets,sr2mcttjets,"bkg_ttjets",frac_ttjets)
-stackpho("SR2_Trailing","phoEta",22,sr2data,"SingleMu",sr2mcttwjets,"bkg_ttwjets",frac_ttwjets,sr2mcttjets,"bkg_ttjets",frac_ttjets)
+#stackpho("SR2_Trailing","phoEt",22,sr2data,"SingleMu",sr2mcttwjets,"bkg_ttwjets",frac_ttwjets,sr2mcttjets,"bkg_ttjets",frac_ttjets)
+#stackpho("SR2_Trailing","phoEta",22,sr2data,"SingleMu",sr2mcttwjets,"bkg_ttwjets",frac_ttwjets,sr2mcttjets,"bkg_ttjets",frac_ttjets)
 
 
 
