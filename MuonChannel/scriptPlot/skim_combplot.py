@@ -1,6 +1,7 @@
 #!/bin/python
-# 3.21.2016 by Fan Xia
+# 4.7.2016 by Fan Xia
 # To stack bkgs mc and combine data, bkgs and signal
+# using the ../selected/skim...root as inputs
 
 import os
 import sys
@@ -46,88 +47,65 @@ frac_ttg=lumi_data/lumi_ttg
 
 # stack plot module
 
-def stack(plotname,branchname,xname,yname,data,dataname,bkg1,bkg1name,frac1,bkg2,bkg2name,frac2,bkg3,bkg3name,frac3,bkg4,bkg4name,frac4,bkg5,bkg5name,frac5):
+def stack(region,plotname,branchname,xname,yname,xnbin,xmin,xmax,ymin,ymax,data,dataname,bkglist):
 
-    c=ROOT.TCanvas("c","Plots",1000,800)
-    c.Clear
-    gStyle.SetOptStat(0)
-    gPad.SetLogy()
+
+    c=ROOT.TCanvas("c","Plots",1000,1000)
     c.cd()
+    gStyle.SetOptStat(0)
+    leg=ROOT.TLegend(0.6,0.8,0.9,0.9)    
+    hs=ROOT.THStack("hs","hs")
 
 
-#---------------bkg stack-------
-    hs=ROOT.THStack("hs","plotname")
-#    histmc1=ROOT.TH1F("histmc1","histmc1",100,0,1000)
-#    histmc2=ROOT.TH1F("histmc2","histmc2",100,0,1000)
-
-    bkg1.Draw(branchname+">>histmc1")
-    histmc1.SetFillColor(kGreen+1)
-    histmc1.Scale(frac1)
-    hs.Add(histmc1)
-
-    bkg2.Draw(branchname+">>histmc2")
-    histmc2.SetFillColor(kOrange)
-    histmc2.Scale(frac2)
-    hs.Add(histmc2)
-
-    bkg3.Draw(branchname+">>histmc3")
-    histmc3.SetFillColor(kAzure-3)
-    histmc3.Scale(frac3)
-    hs.Add(histmc3)
-
-    if bkg4.GetEntries() != 0:
-        bkg4.Draw(branchname+">>histmc4")
-        histmc4.SetFillColor(kCyan)
-        histmc4.Scale(frac4)
-        hs.Add(histmc4)
-
-    bkg5.Draw(branchname+">>histmc5")
-    histmc5.SetFillColor(kPink+1)
-    histmc5.Scale(frac5)
-    hs.Add(histmc5)
-
-
-
-
-
-
-#--------------data--------------
-    data.Draw(branchname+">>histdata")
+#---------------data
+    histdata=ROOT.TH1F("histdata","histdata",xnbin,xmin,xmax)
+    for j in range(data.GetEntries()):
+        data.GetEntry(j)
+        if data.region==region:
+            histdata.Fill(getattr(data,branchname))
+    histdata.Draw()
     histdata.SetLineColor(kBlack)
     histdata.SetLineWidth(2)
-    
-#--------------signal----------
+    histdata.SetLineStyle(2)
+    leg.AddEntry(histdata,dataname,"l")
+
+
+#---------------bkg stack-("nostack"mode)------
+
+    for bkg in bkglist:
+        histmc=ROOT.TH1F("","",xnbin,xmin,xmax)
+        print "get bkg input"
+        nevents=bkg[0].GetEntries()
+        print nevents
+        if nevents==0:
+            continue
+        for i in range(nevents):
+            bkg[0].GetEntry(i)
+            if bkg[0].region==region:
+                histmc.Fill(getattr(bkg[0],branchname))
+        if histmc.GetEntries()==0: continue
+        histmc.SetLineColor(bkg[3])
+        histmc.SetLineWidth(2)
+        histmc.Scale(bkg[2])
+        hs.Add(histmc)
+        leg.AddEntry(histmc,bkg[1],"l")
+    print "get bkg done"
+
     
 #---------------draw--------
-#    hs.SetMinimum(hs.GetMinimum())
-#    hs.SetMaximum(hs.GetMaximum()*1.2)
-    hs.SetMaximum(3.0)
-    hs.SetMinimum(hs.GetMinimum("nostack"))
-    hs.SetMinimum(0.01)
+
+    hs.SetTitle("MuonChannel: "+plotname+";"+branchname+";")
     hs.Draw()
-    histdata.Draw("e same")
-    hs.SetTitle("Muon Channel: "+plotname+";"+xname+";"+yname)
-
-
-    leg=ROOT.TLegend(0.6,0.8,0.9,0.9)
-#    leg->SetHeader();
-    leg.AddEntry(histdata,dataname,"le");
-    leg.AddEntry(histmc1,bkg1name,"f");
-    leg.AddEntry(histmc2,bkg2name,"f");
-    leg.AddEntry(histmc3,bkg3name,"f");
-    if bkg4.GetEntries()!=0:
-        leg.AddEntry(histmc4,bkg4name,"f");
-
-    leg.AddEntry(histmc5,bkg5name,"f");
-
-    leg.Draw();
-
-#    gPad.Update()
-
-    c.Print(plotname+".png","png")
+#    hs.Draw("nostack")
+    hs.SetMaximum(ymax)
+    hs.SetMinimum(ymin)
+    leg.Draw()
+    histdata.Draw("same")
+    c.Print("xxx.png","png")
+    hs.Write()
+    histdata.Write()
     c.Clear()
-# end stack plot module
-
+#--------and stack
 
 
 
@@ -262,25 +240,19 @@ sw.Start()
 print "start"
 
 #------------input file and input tree----------
-regionlist=["EventTree_pre","EventTree_SR1","EventTree_SR2","EventTree_CR1","EventTree_CR2"]
 data=TFile.Open("../selected/dataSingleMu3Mar31/dataSingleMu3.root")
-#mcttjets=TFile.Open("../selected/selected_mcttjets_321/selected_mcttjets_321.root")
-#mcttwjets=TFile.Open("../selected/selected_mcttwjets_321/selected_mcttwjets_321.root")
 mcttg=TFile.Open("../selected/mcttgApr03/mcttg.root")
 mcttw=TFile.Open("../selected/mcttwMar31/mcttw.root")
 mctt=TFile.Open("../selected/mcttMar31/mctt.root")
 mcdyjets=TFile.Open("../selected/mcdyjetstollApr01/mcdyjetstoll.root")
 mcwjets=TFile.Open("../selected/mcwjetsApr03/mcwjets.root")
 
-
-
-dataTree=[data.Get(region) for region in regionlist]
-
-mcttTree=[mctt.Get(region) for region in regionlist]
-mcttwTree=[mcttw.Get(region) for region in regionlist]
-mcttgTree=[mcttg.Get(region) for region in regionlist]
-mcdyjetsTree=[mcdyjets.Get(region) for region in regionlist]
-mcwjetsTree=[mcwjets.Get(region) for region in regionlist]
+dataTree=data.Get("EventTree")
+mcttTree=mctt.Get("EventTree")
+mcttwTree=mcttw.Get("EventTree")
+mcttgTree=mcttg.Get("EventTree")
+mcdyjetsTree=mcdyjets.Get("EventTree")
+mcwjetsTree=mcwjets.Get("EventTree")
 
 
 #-----------------output dir and files
@@ -299,12 +271,12 @@ f = open("summarytable.txt","w")
 sumt=PrettyTable()
 sumtt=PrettyTable()
 
-Ndata=[tree.GetEntries() for tree in dataTree]
-Nmctt=[tree.GetEntries()*frac_tt for tree in mcttTree]
-Nmcttw=[tree.GetEntries()*frac_ttw for tree in mcttwTree]
-Nmcttg=[tree.GetEntries()*frac_ttg for tree in mcttgTree]
-Nmcdyjets=[tree.GetEntries()*frac_dyjets for tree in mcdyjetsTree]
-Nmcwjets=[tree.GetEntries()*frac_wjets for tree in mcwjetsTree]
+Ndata=[dataTree.Draw("","region=="+str(i),"") for i in range(5)]
+Nmctt=[mcttTree.Draw("","region=="+str(i),"") for i in range(5)]
+Nmcttw=[mcttwTree.Draw("","region=="+str(i),"") for i in range(5)]
+Nmcttg=[mcttgTree.Draw("","region=="+str(i),"") for i in range(5)]
+Nmcdyjets=[mcdyjetsTree.Draw("","region=="+str(i),"") for i in range(5)]
+Nmcwjets=[mcwjetsTree.Draw("","region=="+str(i),"") for i in range(5)]
 
 Nbkgsum=[Nmctt[i]+Nmcttw[i]+Nmcttg[i]+Nmcdyjets[i]+Nmcwjets[i] for i in range(5)]
 sumt.field_names = ["Channel","Pre_selection","SR1","SR2"]
@@ -336,7 +308,7 @@ f.close()
 
 #------------pre plot
 #--pfMET
-stack("Pre-selection_pfMET","pfMET","MET(GeV)","number of events",dataTree[0],"DataSingleMu",mcttwTree[0],"bkg_ttw",frac_ttw,mcttgTree[0],"bkg_ttg",frac_ttg,mcdyjetsTree[0],"bkg_zjets",frac_dyjets,mcwjetsTree[0],"bkg_wjets",frac_wjets,mcttTree[0],"bkg_tt",frac_tt)
+stack(0,"Pre-selection_pfMET","pfMET","MET(GeV)","number of events",100,0,1000,0.01,10000,dataTree,"DataSingleMu",[[mcttwTree,"bkg_ttw",frac_ttw,417],[mcttgTree,"bkg_ttg",frac_ttg,800],[mcdyjetsTree,"bkg_zjets",frac_dyjets,857],[mcwjetsTree,"bkg_wjets",frac_wjets,432],[mcttTree,"bkg_tt",frac_tt,901]])
 #--nVtx
 #stack("Pre-selection_nVtx","nVtx","nVtx","number of events",predata,"DataSingleMu",premcttw,"bkg_ttw",frac_ttw,premcttg,"bkg_ttg",frac_ttg,premcdyjets,"bkg_zjets",frac_dyjets,premcwjets,"bkg_wjets",frac_wjets,premctt,"bkg_tt",frac_tt)
 
