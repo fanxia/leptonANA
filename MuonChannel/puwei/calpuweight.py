@@ -65,5 +65,3 @@ leg.Draw()
 c.Print("PUTrue-data_vs_mc.pdf","pdf")
 
 f.Close()
-
-
