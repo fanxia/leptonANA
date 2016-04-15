@@ -52,12 +52,13 @@ puweight.Write()
 log.write("pileweightlist: %s\n"%puweightlist)
 log.close()
 
-pileupdata.Draw()
-
+gStyle.SetOptStat(0)
+pileupdata.Draw("hist")
+pileupdata.SetTitle("pileupTrue")
 pileupdata.SetLineColor(kBlack)
 leg.AddEntry(pileupdata,"Data pu_true","l")
 pileupmc.Draw("same")
-pileupmc.SetLineColor(kRed)
+pileupmc.SetLineColor(kBlue)
 leg.AddEntry(pileupmc,"MC pu_true","l")
 leg.Draw()
 
