@@ -239,13 +239,15 @@ sw = ROOT.TStopwatch()
 sw.Start()
 print "start"
 
+
 #------------input file and input tree----------
-data=TFile.Open("../selected/dataSingleMu3Mar31/dataSingleMu3.root")
-mcttg=TFile.Open("../selected/mcttgApr03/mcttg.root")
-mcttw=TFile.Open("../selected/mcttwMar31/mcttw.root")
-mctt=TFile.Open("../selected/mcttMar31/mctt.root")
-mcdyjets=TFile.Open("../selected/mcdyjetstollApr01/mcdyjetstoll.root")
-mcwjets=TFile.Open("../selected/mcwjetsApr03/mcwjets.root")
+data=TFile.Open("../selected/skim_dataSingleMuApr12/skim_dataSingleMu.root")
+mcttg=TFile.Open("../selected/skim_mcttgApr15/skim_mcttg.root")
+mcttw=TFile.Open("../selected/skim_mcttwApr15/skim_mcttw.root")
+mctt=TFile.Open("../selected/skim_mcttApr15/skim_mctt.root")
+mcdyjets=TFile.Open("../selected/skim_mcdyjetsApr15/skim_mcdyjets.root")
+mcwjets=TFile.Open("../selected/skim_mcwjetsApr15/skim_mcwjets.root")
+
 
 dataTree=data.Get("EventTree")
 mcttTree=mctt.Get("EventTree")
@@ -260,49 +262,6 @@ mcwjetsTree=mcwjets.Get("EventTree")
 dd=datetime.datetime.now().strftime("%b%d")
 os.system('mkdir -p plot_'+dd)
 os.chdir('plot_'+dd)
-f = open("summarytable.txt","w")
-
-
-
-
-
-#--------------------summary table----------------------------------
-
-sumt=PrettyTable()
-sumtt=PrettyTable()
-
-Ndata=[dataTree.Draw("","region=="+str(i),"") for i in range(5)]
-Nmctt=[mcttTree.Draw("","region=="+str(i),"") for i in range(5)]
-Nmcttw=[mcttwTree.Draw("","region=="+str(i),"") for i in range(5)]
-Nmcttg=[mcttgTree.Draw("","region=="+str(i),"") for i in range(5)]
-Nmcdyjets=[mcdyjetsTree.Draw("","region=="+str(i),"") for i in range(5)]
-Nmcwjets=[mcwjetsTree.Draw("","region=="+str(i),"") for i in range(5)]
-
-Nbkgsum=[Nmctt[i]+Nmcttw[i]+Nmcttg[i]+Nmcdyjets[i]+Nmcwjets[i] for i in range(5)]
-sumt.field_names = ["Channel","Pre_selection","SR1","SR2"]
-sumt.add_row(["tt",Nmctt[0],Nmctt[1],Nmctt[2]])
-sumt.add_row(["ttw",Nmcttw[0],Nmcttw[1],Nmcttw[2]])
-sumt.add_row(["ttg",Nmcttg[0],Nmcttg[1],Nmcttg[2]])
-sumt.add_row(["zjets",Nmcdyjets[0],Nmcdyjets[1],Nmcdyjets[2]])
-sumt.add_row(["wjets",Nmcwjets[0],Nmcwjets[1],Nmcwjets[2]])
-sumt.add_row(["bkgsum",Nbkgsum[0],Nbkgsum[1],Nbkgsum[2]])
-sumt.add_row(["-","-","-","-"])
-sumt.add_row(["data",Ndata[0],Ndata[1],Ndata[2]])
-
-sumtt.field_names = ["Channel","Pre_selection","CR1","CR2"]
-sumtt.add_row(["tt",Nmctt[0],Nmctt[3],Nmctt[4]])
-sumtt.add_row(["ttw",Nmcttw[0],Nmcttw[3],Nmcttw[4]])
-sumtt.add_row(["ttg",Nmcttg[0],Nmcttg[3],Nmcttg[4]])
-sumtt.add_row(["zjets",Nmcdyjets[0],Nmcdyjets[3],Nmcdyjets[4]])
-sumtt.add_row(["wjets",Nmcwjets[0],Nmcwjets[3],Nmcwjets[4]])
-sumtt.add_row(["bkgsum",Nbkgsum[0],Nbkgsum[3],Nbkgsum[4]])
-sumtt.add_row(["-","-","-","-"])
-sumtt.add_row(["data",Ndata[0],Ndata[3],Ndata[4]])
-
-f.write("%s\n"%sumt)
-f.write("%s"%sumtt)
-f.close()
-
 
 
 

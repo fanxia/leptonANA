@@ -51,7 +51,7 @@ frac_ttg=lumi_data/lumi_ttg
 def stack(plotname,histname,data,dataname,bkglist):
 
 
-    c=ROOT.TCanvas("c","Plots",1000,1000)
+    c=ROOT.TCanvas("c","Plots",1300,1000)
     c.cd()
     gStyle.SetOptStat(0)
     leg=ROOT.TLegend(0.6,0.8,0.9,0.9)    
@@ -62,7 +62,8 @@ def stack(plotname,histname,data,dataname,bkglist):
     histdata=data.Get(histname)
     histdata.Draw()
     histdata.SetLineColor(kBlack)
-    histdata.SetLineWidth(2)
+    histdata.SetLineWidth(1)
+    histdata.SetMarkerStyle(7)
 #    histdata.SetLineStyle(2)
     leg.AddEntry(histdata,dataname,"l")
 
@@ -75,7 +76,9 @@ def stack(plotname,histname,data,dataname,bkglist):
         histmc.SetFillColor(bkg[3])
 #        histmc.SetFillWidth(2)
         histmc.Scale(bkg[2])
-        hs.Add(histmc)
+        histmc.SetStats(0)
+
+        hs.Add(histmc,"HIST")
         leg.AddEntry(histmc,bkg[1],"f")
     print "get bkg done"
 
@@ -83,15 +86,19 @@ def stack(plotname,histname,data,dataname,bkglist):
 #---------------draw--------
 
 #    hs.SetTitle("MuonChannel: "++";"+branchname+";")
-    hs.SetTitle(histdata.GetTitle())
-    gPad.SetLogy()
     hs.Draw()
+    hs.SetTitle(histdata.GetTitle())
+    hs.GetXaxis().SetTitle(histdata.GetXaxis().GetTitle())
+    hs.GetYaxis().SetTitle(histdata.GetYaxis().GetTitle())
+    gPad.SetLogy()
+
 #    hs.Draw("nostack")
-#    hs.SetMaximum(ymax)
-#    hs.SetMinimum(ymin)
-    leg.Draw()
+    hs.SetMaximum(max(hs.GetMaximum(),histdata.GetMaximum())*1.1)
+    hs.SetMinimum(hs.GetMinimum("nostack")*5.)
     histdata.Draw("e same")
-    c.Print(plotname+".png","png")
+    histdata.SetStats(0)
+    leg.Draw()
+    c.Print(plotname+".pdf","pdf")
     c.Clear()
 #--------and stack
 
@@ -101,12 +108,12 @@ sw.Start()
 print "start"
 
 #------------input file and input tree----------
-data=TFile.Open("../selected/skim_dataSingleMuApr07/skim_dataSingleMu.root")
-mcttg=TFile.Open("../selected/skim_mcttgApr07/skim_mcttg.root")
-mcttw=TFile.Open("../selected/skim_mcttwApr07/skim_mcttw.root")
-mctt=TFile.Open("../selected/skim_mcttApr07/skim_mctt.root")
-mcdyjets=TFile.Open("../selected/skim_mcdyjetsApr07/skim_mcdyjets.root")
-mcwjets=TFile.Open("../selected/skim_mcwjetsApr07/skim_mcwjets.root")
+data=TFile.Open("../selected/skim_dataSingleMuApr12/skim_dataSingleMu.root")
+mcttg=TFile.Open("../selected/skim_mcttgApr15/skim_mcttg.root")
+mcttw=TFile.Open("../selected/skim_mcttwApr15/skim_mcttw.root")
+mctt=TFile.Open("../selected/skim_mcttApr15/skim_mctt.root")
+mcdyjets=TFile.Open("../selected/skim_mcdyjetsApr15/skim_mcdyjets.root")
+mcwjets=TFile.Open("../selected/skim_mcwjetsApr15/skim_mcwjets.root")
 
 
 
@@ -124,6 +131,7 @@ stack("pre-seletion_muEta","pre_SingleMuEta",data,"SingleMu",[[mcttw,"bkg_ttw",f
 stack("pre-npho","pre_nPho",data,"SingleMu",[[mcttw,"bkg_ttw",frac_ttw,417],[mcttg,"bkg_ttg",frac_ttg,800],[mcdyjets,"bkg_zjets",frac_dyjets,857],[mcwjets,"bkg_wjets",frac_wjets,432],[mctt,"bkg_tt",frac_tt,901]])
 stack("pre-nfake","pre_nFake",data,"SingleMu",[[mcttw,"bkg_ttw",frac_ttw,417],[mcttg,"bkg_ttg",frac_ttg,800],[mcdyjets,"bkg_zjets",frac_dyjets,857],[mcwjets,"bkg_wjets",frac_wjets,432],[mctt,"bkg_tt",frac_tt,901]])
 stack("pre-nJet","pre_nJet",data,"SingleMu",[[mcttw,"bkg_ttw",frac_ttw,417],[mcttg,"bkg_ttg",frac_ttg,800],[mcdyjets,"bkg_zjets",frac_dyjets,857],[mcwjets,"bkg_wjets",frac_wjets,432],[mctt,"bkg_tt",frac_tt,901]])
+stack("pre-jetHt","pre_jetHt",data,"SingleMu",[[mcttw,"bkg_ttw",frac_ttw,417],[mcttg,"bkg_ttg",frac_ttg,800],[mcdyjets,"bkg_zjets",frac_dyjets,857],[mcwjets,"bkg_wjets",frac_wjets,432],[mctt,"bkg_tt",frac_tt,901]])
 
 
 
@@ -135,6 +143,7 @@ stack("SR1-seletion_muPt","SR1_SingleMuPt",data,"SingleMu",[[mcttw,"bkg_ttw",fra
 stack("SR1dR_pho_mu","SR1dR_pho_mu",data,"SingleMu",[[mcttw,"bkg_ttw",frac_ttw,417],[mcttg,"bkg_ttg",frac_ttg,800],[mcdyjets,"bkg_zjets",frac_dyjets,857],[mcwjets,"bkg_wjets",frac_wjets,432],[mctt,"bkg_tt",frac_tt,901]])
 stack("SinglePhoEt","SinglePhoEt",data,"SingleMu",[[mcttw,"bkg_ttw",frac_ttw,417],[mcttg,"bkg_ttg",frac_ttg,800],[mcdyjets,"bkg_zjets",frac_dyjets,857],[mcwjets,"bkg_wjets",frac_wjets,432],[mctt,"bkg_tt",frac_tt,901]])
 stack("SR1invmupho","SR1invmupho",data,"SingleMu",[[mcttw,"bkg_ttw",frac_ttw,417],[mcttg,"bkg_ttg",frac_ttg,800],[mcdyjets,"bkg_zjets",frac_dyjets,857],[mcwjets,"bkg_wjets",frac_wjets,432],[mctt,"bkg_tt",frac_tt,901]])
+stack("SR1_jetHt","SR1_jetHt",data,"SingleMu",[[mcttw,"bkg_ttw",frac_ttw,417],[mcttg,"bkg_ttg",frac_ttg,800],[mcdyjets,"bkg_zjets",frac_dyjets,857],[mcwjets,"bkg_wjets",frac_wjets,432],[mctt,"bkg_tt",frac_tt,901]])
 
 
 stack("SR2MET","SR2MET",data,"SingleMu",[[mcttw,"bkg_ttw",frac_ttw,417],[mcttg,"bkg_ttg",frac_ttg,800],[mcdyjets,"bkg_zjets",frac_dyjets,857],[mcwjets,"bkg_wjets",frac_wjets,432],[mctt,"bkg_tt",frac_tt,901]])
@@ -143,7 +152,22 @@ stack("SR2phodR","SR2phodR",data,"SingleMu",[[mcttw,"bkg_ttw",frac_ttw,417],[mct
 stack("diPhotonM","diPhotonM",data,"SingleMu",[[mcttw,"bkg_ttw",frac_ttw,417],[mcttg,"bkg_ttg",frac_ttg,800],[mcdyjets,"bkg_zjets",frac_dyjets,857],[mcwjets,"bkg_wjets",frac_wjets,432],[mctt,"bkg_tt",frac_tt,901]])
 stack("LeadPhoEt","LeadPhoEt",data,"SingleMu",[[mcttw,"bkg_ttw",frac_ttw,417],[mcttg,"bkg_ttg",frac_ttg,800],[mcdyjets,"bkg_zjets",frac_dyjets,857],[mcwjets,"bkg_wjets",frac_wjets,432],[mctt,"bkg_tt",frac_tt,901]])
 stack("TrailPhoEt","TrailPhoEt",data,"SingleMu",[[mcttw,"bkg_ttw",frac_ttw,417],[mcttg,"bkg_ttg",frac_ttg,800],[mcdyjets,"bkg_zjets",frac_dyjets,857],[mcwjets,"bkg_wjets",frac_wjets,432],[mctt,"bkg_tt",frac_tt,901]])
+stack("SR2_jetHt","SR2_jetHt",data,"SingleMu",[[mcttw,"bkg_ttw",frac_ttw,417],[mcttg,"bkg_ttg",frac_ttg,800],[mcdyjets,"bkg_zjets",frac_dyjets,857],[mcwjets,"bkg_wjets",frac_wjets,432],[mctt,"bkg_tt",frac_tt,901]])
 
+
+stack("CR1MET","CR1MET",data,"SingleMu",[[mcttw,"bkg_ttw",frac_ttw,417],[mcttg,"bkg_ttg",frac_ttg,800],[mcdyjets,"bkg_zjets",frac_dyjets,857],[mcwjets,"bkg_wjets",frac_wjets,432],[mctt,"bkg_tt",frac_tt,901]])
+stack("CR1-seletion_muPt","CR1_SingleMuPt",data,"SingleMu",[[mcttw,"bkg_ttw",frac_ttw,417],[mcttg,"bkg_ttg",frac_ttg,800],[mcdyjets,"bkg_zjets",frac_dyjets,857],[mcwjets,"bkg_wjets",frac_wjets,432],[mctt,"bkg_tt",frac_tt,901]])
+stack("CR1dR_fake_mu","CR1dR_fake_mu",data,"SingleMu",[[mcttw,"bkg_ttw",frac_ttw,417],[mcttg,"bkg_ttg",frac_ttg,800],[mcdyjets,"bkg_zjets",frac_dyjets,857],[mcwjets,"bkg_wjets",frac_wjets,432],[mctt,"bkg_tt",frac_tt,901]])
+stack("SingleFakeEt","SingleFakeEt",data,"SingleMu",[[mcttw,"bkg_ttw",frac_ttw,417],[mcttg,"bkg_ttg",frac_ttg,800],[mcdyjets,"bkg_zjets",frac_dyjets,857],[mcwjets,"bkg_wjets",frac_wjets,432],[mctt,"bkg_tt",frac_tt,901]])
+stack("CR1invmufake","CR1invmufake",data,"SingleMu",[[mcttw,"bkg_ttw",frac_ttw,417],[mcttg,"bkg_ttg",frac_ttg,800],[mcdyjets,"bkg_zjets",frac_dyjets,857],[mcwjets,"bkg_wjets",frac_wjets,432],[mctt,"bkg_tt",frac_tt,901]])
+stack("CR1_jetHt","CR1_jetHt",data,"SingleMu",[[mcttw,"bkg_ttw",frac_ttw,417],[mcttg,"bkg_ttg",frac_ttg,800],[mcdyjets,"bkg_zjets",frac_dyjets,857],[mcwjets,"bkg_wjets",frac_wjets,432],[mctt,"bkg_tt",frac_tt,901]])
+
+stack("CR2MET","CR2MET",data,"SingleMu",[[mcttw,"bkg_ttw",frac_ttw,417],[mcttg,"bkg_ttg",frac_ttg,800],[mcdyjets,"bkg_zjets",frac_dyjets,857],[mcwjets,"bkg_wjets",frac_wjets,432],[mctt,"bkg_tt",frac_tt,901]])
+stack("CR2-seletion_muPt","CR2_SingleMuPt",data,"SingleMu",[[mcttw,"bkg_ttw",frac_ttw,417],[mcttg,"bkg_ttg",frac_ttg,800],[mcdyjets,"bkg_zjets",frac_dyjets,857],[mcwjets,"bkg_wjets",frac_wjets,432],[mctt,"bkg_tt",frac_tt,901]])
+stack("diFakeM","diFakeM",data,"SingleMu",[[mcttw,"bkg_ttw",frac_ttw,417],[mcttg,"bkg_ttg",frac_ttg,800],[mcdyjets,"bkg_zjets",frac_dyjets,857],[mcwjets,"bkg_wjets",frac_wjets,432],[mctt,"bkg_tt",frac_tt,901]])
+stack("LeadFakeEt","LeadFakeEt",data,"SingleMu",[[mcttw,"bkg_ttw",frac_ttw,417],[mcttg,"bkg_ttg",frac_ttg,800],[mcdyjets,"bkg_zjets",frac_dyjets,857],[mcwjets,"bkg_wjets",frac_wjets,432],[mctt,"bkg_tt",frac_tt,901]])
+stack("TrailFakeEt","TrailFakeEt",data,"SingleMu",[[mcttw,"bkg_ttw",frac_ttw,417],[mcttg,"bkg_ttg",frac_ttg,800],[mcdyjets,"bkg_zjets",frac_dyjets,857],[mcwjets,"bkg_wjets",frac_wjets,432],[mctt,"bkg_tt",frac_tt,901]])
+stack("CR2_jetHt","CR2_jetHt",data,"SingleMu",[[mcttw,"bkg_ttw",frac_ttw,417],[mcttg,"bkg_ttg",frac_ttg,800],[mcdyjets,"bkg_zjets",frac_dyjets,857],[mcwjets,"bkg_wjets",frac_wjets,432],[mctt,"bkg_tt",frac_tt,901]])
 
 #--muPt and muEta
 #stackMu("Pre-seletion_muPt","muPt",predata,"SingleMu",[[premcttw,"bkg_ttw",frac_ttw,417],[premcttg,"bkg_ttg",frac_ttg,800],[premcdyjets,"bkg_zjets",frac_dyjets,857],[premcwjets,"bkg_wjets",frac_wjets,432],[premctt,"bkg_tt",frac_tt,901]])
