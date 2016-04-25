@@ -553,6 +553,7 @@ pre_nJet.Draw()
 
 
 c.Clear()
+preMET.Sumw2()
 preMET.Scale(1,"width")
 preMET.Draw("e")
 #preMET.SetBins()
@@ -585,6 +586,7 @@ pre_jetHt.SetTitle("MuChannel pre-selection; HT_jets;N_events/GeV")
 
 
 c.Clear()
+SR1MET.Sumw2()
 SR1MET.Scale(1,"width")
 SR1MET.Draw("e")
 SR1MET.SetTitle("MuChannel SR1:MET;MET (GeV);N_events/GeV")
@@ -679,6 +681,7 @@ SR2_SingleMuPt.SetTitle("MuChannel SR2;mu_Pt (GeV/c);N_events/GeV")
 #c.print("SR2_SingleMuPt.pdf","pdf")
 
 c.Clear()
+SR2MET.Sumw2()
 SR2MET.Scale(1,"width")
 SR2MET.Draw("e")
 SR2MET.SetTitle("MuChannel SR2:MET;MET (GeV);N_events/GeV")
@@ -729,6 +732,7 @@ SR2_jetHt.SetTitle("MuChannel SR2; HT_jets;N_events/GeV")
 
 
 c.Clear()
+CR1MET.Sumw2()
 CR1MET.Scale(1,"width")
 CR1MET.Draw("e")
 CR1MET.SetTitle("MuChannel CR1:MET;MET (GeV);N_events/GeV")
@@ -802,6 +806,7 @@ CR2_SingleMuPt.SetTitle("MuChannel CR2;mu_Pt (GeV/c);N_events/GeV")
 #c.print("CR2_SingleMuPt.pdf","pdf")
 
 c.Clear()
+CR2MET.Sumw2()
 CR2MET.Scale(1,"width")
 CR2MET.Draw("e")
 CR2MET.SetTitle("MuChannel CR2:MET;MET (GeV);N_events/GeV")
