@@ -1,3 +1,6 @@
+// This script to plot stop pair Xsec and stop-bino Xsec for 13 TeV
+// in root, .x createStopXS.C
+
 void createStopXS() {
 
   TFile * fOut = new TFile("stop-bino_xsecs.root", "RECREATE");
