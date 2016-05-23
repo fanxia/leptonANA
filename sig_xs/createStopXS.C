@@ -25,39 +25,64 @@ void createStopXS() {
 
   //TH2D * h_real_errors = (TH2D*)h_real_xsec->Clone("real_errors");
 
-  TH1D * h_xsec = new TH1D("xsec", "stop_xsec", 380, 100, 2000);
-  h_xsec->Sumw2();
+  TH1D * h_xsec8 = new TH1D("xsec8", "stop_xsec8", 380, 100, 2000);
+  h_xsec8->Sumw2();
+  TH1D * h_xsec13 = new TH1D("xsec13", "stop_xsec13", 380, 100, 2000);
+  h_xsec13->Sumw2();
 
-  TH2D * h2_xsec = new TH2D("h2_xsec","stop_bino_xs",380,100,2000,200,0,1000);
-  h2_xsec->Sumw2();
-  
-  TH1D * h_errors = (TH1D*)h_xsec->Clone("errors");
+  TH2D * h2_xsec8 = new TH2D("h2_xsec8","stop_bino_xs8",380,100,2000,200,0,1000);
+  h2_xsec8->Sumw2();
+  TH2D * h2_xsec13 = new TH2D("h2_xsec13","stop_bino_xs13",380,100,2000,200,0,1000);
+  h2_xsec13->Sumw2();
+  TH1D * h_errors8 = (TH1D*)h_xsec8->Clone("errors");
+  TH1D * h_errors13 = (TH1D*)h_xsec13->Clone("errors");
 
-  ifstream fin;
-  fin.open("xsec/stop_pair_13TeVxs.dat");
+  ifstream fin8;
+  fin8.open("xsec/stop_pair_8TeVxs.dat");
+  ifstream fin13;
+  fin13.open("xsec/stop_pair_13TeVxs.dat");
 
   while(1) {
     int mStop;
     int mBino;
     double xsec, xsecErr;
 
-    fin >> mStop >> xsec >> xsecErr;
+    fin13 >> mStop >> xsec >> xsecErr;
     
-    if(!fin.good()) break;
+    if(!fin13.good()) break;
 
-    h_xsec->SetBinContent(h_xsec->FindBin(mStop), xsec);
-    h_xsec->SetBinError(h_xsec->FindBin(mStop), xsec*xsecErr*0.01);
-    h_errors->SetBinContent(h_errors->FindBin(mStop), xsecErr);
+    h_xsec13->SetBinContent(h_xsec13->FindBin(mStop), xsec);
+    h_xsec13->SetBinError(h_xsec13->FindBin(mStop), xsec*xsecErr*0.01);
+    h_errors13->SetBinContent(h_errors13->FindBin(mStop), xsecErr);
   
     for(mBino=0;mBino<mStop;mBino+=5)
-      {h2_xsec->SetBinContent(h2_xsec->FindBin(mStop,mBino),xsec);
+      {h2_xsec13->SetBinContent(h2_xsec13->FindBin(mStop,mBino),xsec);
 	if(mBino>1000) break;}
 
   }
-  //  gStyle->SetOptStat(0)
+while(1) {
+    int mStop;
+    int mBino;
+    double xsec, xsecErr;
+    fin8 >> mStop >> xsec >> xsecErr;
+    
+    if(!fin8.good()) break;
+
+    h_xsec8->SetBinContent(h_xsec8->FindBin(mStop), xsec);
+    h_xsec8->SetBinError(h_xsec8->FindBin(mStop), xsec*xsecErr*0.01);
+    h_errors8->SetBinContent(h_errors8->FindBin(mStop), xsecErr);
+  
+    for(mBino=0;mBino<mStop;mBino+=5)
+      {h2_xsec8->SetBinContent(h2_xsec8->FindBin(mStop,mBino),xsec);
+	if(mBino>1000) break;}
+
+  }
+  
+ //  gStyle->SetOptStat(0)
   //gPad->SetLogy()
 
-  fin.close();
+  fin8.close();
+  fin13.close();
   TCanvas *c=new TCanvas("c","c",1000,800);
   TLine * virtualLine = new TLine(100, 100, 1000, 1000);
   virtualLine->SetLineStyle(2);
@@ -66,49 +91,121 @@ void createStopXS() {
   nlspComment->SetTextAngle(49);
   nlspComment->SetTextSize(0.02);
 
-  TPaveText *Header = new TPaveText(0.1, 0.901, 0.45, 0.94, "NDC");
-  Header->SetFillColor(0);
-  Header->SetFillStyle(0);
-  Header->SetLineColor(0);
-  Header->SetBorderSize(0);
-  Header->AddText("pp  #sqrt{s} = 13 TeV  NLO-NLL  ");
+  TPaveText *Header13 = new TPaveText(0.1, 0.901, 0.45, 0.94, "NDC");
+  Header13->SetFillColor(0);
+  Header13->SetFillStyle(0);
+  Header13->SetLineColor(0);
+  Header13->SetBorderSize(0);
+  Header13->AddText("pp  #sqrt{s} = 13 TeV  NLO-NLL  ");
+
+  TPaveText *Header8 = new TPaveText(0.1, 0.901, 0.45, 0.94, "NDC");
+  Header8->SetFillColor(0);
+  Header8->SetFillStyle(0);
+  Header8->SetLineColor(0);
+  Header8->SetBorderSize(0);
+  Header8->AddText("pp  #sqrt{s} = 8 TeV  NLO-NLL  ");
 
   c->SetRightMargin(0.14);
-  h2_xsec->Draw("colz");
-  h2_xsec->SetTitle(";m_{Stop}[GeV];m_{Bino}[GeV];Cross Section [pb]");
-  h2_xsec->SetMinimum(0.0001);
-  h2_xsec->SetMaximum(2000);
-  h2_xsec->GetXaxis()->SetRangeUser(100,1500);
-  h2_xsec->GetXaxis()->SetLabelSize(0.025);
-  h2_xsec->GetYaxis()->SetTitleOffset(1.2);
-  h2_xsec->GetYaxis()->SetLabelSize(0.025);
-  h2_xsec->GetZaxis()->SetTitleOffset(1.0);
-  h2_xsec->GetZaxis()->SetLabelSize(0.02);
+  h2_xsec13->Draw("colz");
+  h2_xsec13->SetTitle(";m_{Stop}[GeV];m_{Bino}[GeV];Cross Section [pb]");
+  h2_xsec13->SetMinimum(0.000008);
+  h2_xsec13->SetMaximum(2000);
+  h2_xsec13->GetXaxis()->SetRangeUser(100,1400);
+  h2_xsec13->GetXaxis()->SetLabelSize(0.025);
+  h2_xsec13->GetYaxis()->SetTitleOffset(1.2);
+  h2_xsec13->GetYaxis()->SetLabelSize(0.025);
+  h2_xsec13->GetZaxis()->SetTitleOffset(1.0);
+  h2_xsec13->GetZaxis()->SetLabelSize(0.02);
   gStyle->SetOptStat(0);
   gPad->SetLogz();
   virtualLine->Draw("same");
   nlspComment->Draw("same");
-  Header->Draw("same");
-  c->Print("stopbinoXS.pdf","pdf");
+  Header13->Draw("same");
+  c->Print("xsec.pdf(");
 
   c->Clear();
   gPad->SetLogy();
   gPad->SetGrid();
-  TH1D * h_xsec2=(TH1D*)h_xsec->Clone("sec");
-  h_xsec->Draw("E4");
-
-  h_xsec->SetFillColor(kBlue-10);
+  TH1D * h_xsec13_2=(TH1D*)h_xsec13->Clone("sec");
+  h_xsec13->Draw("E4");
+  h_xsec13->SetMaximum(3000);
+  h_xsec13->SetFillColor(kBlue-10);
  
 
-  h_xsec2->Draw("Hist C same");
-  h_xsec2->SetLineColor(kBlue);
+  h_xsec13_2->Draw("Hist C same");
+  h_xsec13_2->SetLineColor(kBlue);
 
-  h_xsec->GetXaxis()->SetTitleOffset(1.2);
-  h_xsec->GetYaxis()->SetTitleOffset(1.2);
-  h_xsec->SetTitle(";m_{Stop}[GeV];Stop pair production #sigma [pb]");
+  h_xsec13->GetXaxis()->SetTitleOffset(1.2);
+  h_xsec13->GetYaxis()->SetTitleOffset(1.2);
+  h_xsec13->SetTitle(";m_{Stop}[GeV];Stop pair production #sigma [pb]");
 
-  Header->Draw("same");
-  c->Print("stopXS.pdf","pdf");
+  Header13->Draw("same");
+  c->Print("xsec.pdf");
+
+
+  c->Clear();
+  c->SetRightMargin(0.14);
+  gPad->SetLogy(0);
+  gPad->SetGrid(0,0);
+  h2_xsec8->Draw("colz");
+  h2_xsec8->SetTitle(";m_{Stop}[GeV];m_{Bino}[GeV];Cross Section [pb]");
+  h2_xsec8->SetMinimum(0.000008);
+  h2_xsec8->SetMaximum(2000);
+  h2_xsec8->GetXaxis()->SetRangeUser(100,1400);
+  h2_xsec8->GetXaxis()->SetLabelSize(0.025);
+  h2_xsec8->GetYaxis()->SetTitleOffset(1.2);
+  h2_xsec8->GetYaxis()->SetLabelSize(0.025);
+  h2_xsec8->GetZaxis()->SetTitleOffset(1.0);
+  h2_xsec8->GetZaxis()->SetLabelSize(0.02);
+  gStyle->SetOptStat(0);
+  gPad->SetLogz();
+  virtualLine->Draw("same");
+  nlspComment->Draw("same");
+  Header8->Draw("same");
+  c->Print("xsec.pdf");
+
+  c->Clear();
+  gPad->SetLogy();
+  gPad->SetGrid();
+  TH1D * h_xsec8_2=(TH1D*)h_xsec8->Clone("sec");
+  h_xsec8->Draw("E4");
+  h_xsec8->SetMaximum(3000);
+  h_xsec8->SetFillColor(kRed-10);
+ 
+
+  h_xsec8_2->Draw("Hist C same");
+  h_xsec8_2->SetLineColor(kRed);
+
+  h_xsec8->GetXaxis()->SetTitleOffset(1.2);
+  h_xsec8->GetYaxis()->SetTitleOffset(1.2);
+  h_xsec8->SetTitle(";m_{Stop}[GeV];Stop pair production #sigma [pb]");
+
+  Header8->Draw("same");
+  c->Print("xsec.pdf");
+
+  //combine 8 and 13 TeV cross section
+  c->Clear();
+  TLegend *leg=new TLegend(0.7,0.75,0.85,0.9);
+
+  gPad->SetLogy();
+  gPad->SetGrid();
+  h_xsec8->Draw("E4");
+  h_xsec8->SetFillColor(kRed-10);
+  h_xsec13->Draw("E4 same");
+  h_xsec13->SetFillColor(kBlue-10);
+  h_xsec13_2->Draw("Hist C same");
+  h_xsec13_2->SetLineColor(kBlue);
+  leg->AddEntry(h_xsec13_2,"pp 13TeV NLO","l");
+
+  h_xsec8_2->Draw("Hist C same");
+  h_xsec8_2->SetLineColor(kRed);
+  leg->AddEntry(h_xsec8_2,"pp 8TeV NLO","l");
+  leg->Draw();
+  h_xsec8->GetXaxis()->SetTitleOffset(1.2);
+  h_xsec8->GetYaxis()->SetTitleOffset(1.2);
+  h_xsec8->SetTitle(";m_{Stop}[GeV];Stop pair production #sigma [pb]");
+  c->Print("xsec.pdf)");
+
 
   /*
   fin.open("crossSections/realStopMass.dat");
