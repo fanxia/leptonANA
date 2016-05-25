@@ -2,6 +2,7 @@
 # 4.15.2016 by Fan Xia
 # using the ../selected/skim...root as inputs
 # count the sum, for weighted mc
+# python sumtable4skim.py DD
 
 import os
 import sys
@@ -51,13 +52,13 @@ sw.Start()
 print "start"
 
 #------------input file and input tree----------
-data=TFile.Open("../selected/skim_dataSingleMuApr12/skim_dataSingleMu.root")
-mcttg=TFile.Open("../selected/skim_mcttgApr15/skim_mcttg.root")
-mcttw=TFile.Open("../selected/skim_mcttwApr15/skim_mcttw.root")
-mctt=TFile.Open("../selected/skim_mcttApr15/skim_mctt.root")
-mcdyjets=TFile.Open("../selected/skim_mcdyjetsApr15/skim_mcdyjets.root")
-mcwjets=TFile.Open("../selected/skim_mcwjetsApr15/skim_mcwjets.root")
-signal=TFile.Open("../selected/skim_sig600_375May10/skim_sig600_375.root")
+data=TFile.Open("../selected/skim_ana_root"+sys.argv[1]+"/skim_dataSingleMu.root")
+mcttg=TFile.Open("../selected/skim_ana_root"+sys.argv[1]+"/skim_mcttg.root")
+mcttw=TFile.Open("../selected/skim_ana_root"+sys.argv[1]+"/skim_mcttw.root")
+mctt=TFile.Open("../selected/skim_ana_root"+sys.argv[1]+"/skim_mctt.root")
+mcdyjets=TFile.Open("../selected/skim_ana_root"+sys.argv[1]+"/skim_mcdyjets.root")
+mcwjets=TFile.Open("../selected/skim_ana_root"+sys.argv[1]+"/skim_mcwjets.root")
+signal=TFile.Open("../selected/skim_ana_root"+sys.argv[1]+"/skim_sig600_375.root")
 
 dataTree=data.Get("EventTree")
 mcttTree=mctt.Get("EventTree")
@@ -165,10 +166,11 @@ wsumt.add_row(["ttw",wNmcttw[0],wNmcttw[1],wNmcttw[2]])
 wsumt.add_row(["ttg",wNmcttg[0],wNmcttg[1],wNmcttg[2]])
 wsumt.add_row(["zjets",wNmcdyjets[0],wNmcdyjets[1],wNmcdyjets[2]])
 wsumt.add_row(["wjets",wNmcwjets[0],wNmcwjets[1],wNmcwjets[2]])
+wsumt.add_row(["-","-","-","-"])
 wsumt.add_row(["bkgsum",wNbkgsum[0],wNbkgsum[1],wNbkgsum[2]])
 wsumt.add_row(["-","-","-","-"])
-wsumt.add_row(["sig600_375",wNsig[0],wNsig[1],wNsig[2]])
-wsumt.add_row(["-","-","-","-"])
+#wsumt.add_row(["sig600_375",wNsig[0],wNsig[1],wNsig[2]])
+#wsumt.add_row(["-","-","-","-"])
 wsumt.add_row(["data",Ndata[0],Ndata[1],Ndata[2]])
 #wsumt.add_row(["diff",wNbkgsum[0]/Ndata[0]-1,wNbkgsum[1]/Ndata[1]-1,wNbkgsum[2]/Ndata[2]-1])
 
@@ -178,9 +180,10 @@ wsumtt.add_row(["ttw",wNmcttw[0],wNmcttw[3],wNmcttw[4]])
 wsumtt.add_row(["ttg",wNmcttg[0],wNmcttg[3],wNmcttg[4]])
 wsumtt.add_row(["zjets",wNmcdyjets[0],wNmcdyjets[3],wNmcdyjets[4]])
 wsumtt.add_row(["wjets",wNmcwjets[0],wNmcwjets[3],wNmcwjets[4]])
-wsumtt.add_row(["bkgsum",wNbkgsum[0],wNbkgsum[3],wNbkgsum[4]])
 wsumtt.add_row(["-","-","-","-"])
-wsumtt.add_row(["sig600_375",wNsig[0],wNsig[3],wNsig[4]])
+wsumtt.add_row(["bkgsum",wNbkgsum[0],wNbkgsum[3],wNbkgsum[4]])
+#wsumtt.add_row(["-","-","-","-"])
+#wsumtt.add_row(["sig600_375",wNsig[0],wNsig[3],wNsig[4]])
 wsumtt.add_row(["-","-","-","-"])
 wsumtt.add_row(["data",Ndata[0],Ndata[3],Ndata[4]])
 #wsumtt.add_row(["diff",wNbkgsum[0]/Ndata[0]-1,wNbkgsum[3]/Ndata[3]-1,wNbkgsum[4]/Ndata[4]-1])
