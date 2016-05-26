@@ -3,6 +3,7 @@
 # To stack bkgs mc and combine data, bkgs and signal
 # using the ../selected/skim...root as inputs
 # This script only good for exsisting histograms and scale combine them
+
 import os
 import sys
 import time
@@ -138,7 +139,7 @@ def stack(plotname,histname,data,dataname,bkglist,sig,signame,frac_sig):
     hssum.SetMinimum(hs.GetMinimum("nostack")*5.)
     histdata.Draw("e same")
     histdata.SetStats(0)
-    histsig.Draw("hist same")
+#    histsig.Draw("hist same")
     leg1.Draw()
     c.Print(plotname+"sketch.pdf","pdf")
     c.Clear()
