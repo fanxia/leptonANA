@@ -1,6 +1,6 @@
 #Readme file:
 #2016-4-7 fanxia
-#update:2016-5-25
+#update:2016-5-30
 
 
 
@@ -33,6 +33,10 @@
 
        plotskim.py        to process the output of skim_ana_*.py, produce the historgrams and stored in outplotDD, using run_plotskim.sh to run it for every datasets
        combskim.py        to process the outplotDD using their histograms directly, only works for lumi kind scale, not for scale event by event
+
+/muonscalefac
+	add scale factor information for muon, include tight id, tight iso, and trigger, for 7_4_X
+
 
 
 # WORK FLOW

@@ -138,6 +138,7 @@ def stack(region,histname,data,dataname,bkglist,sig,signame,frac_sig):
     Header.Draw("same")
     regionComment.Draw("same")
     c.Print(histname+".pdf","pdf")
+    c.Print("WWWoutcombplot_"+dd+"/"+histname+".png")
     c.Clear()
 #--------and stack
 
@@ -165,6 +166,7 @@ def stack(region,histname,data,dataname,bkglist,sig,signame,frac_sig):
     Header.Draw("same")
     regionComment.Draw("same")
     c.Print(histname+"sketch.pdf","pdf")
+    c.Print("WWWoutcombplot_"+dd+"/"+histname+"sketch.png")
     c.Clear()
 
 
@@ -188,6 +190,7 @@ sig=TFile.Open("outplot_"+sys.argv[1]+"/skimplot_sig600_375.root")
 dd=datetime.datetime.now().strftime("%b%d")
 os.system('mkdir -p outcombplot_'+dd)
 os.chdir('outcombplot_'+dd)
+os.system('mkdir -p WWWoutcombplot_'+dd)
 
 stack("Pre-selection","preMET",data,"SingleMu",[[mcttw,"bkg_ttw",frac_ttw,417],[mcttg,"bkg_ttg",frac_ttg,800],[mcdyjets,"bkg_zjets",frac_dyjets,857],[mcwjets,"bkg_wjets",frac_wjets,432],[mctt,"bkg_tt",frac_tt,901]],sig,"stop600_bino375",frac_sig600)
 stack("Pre-selection","pre_SingleMuPt",data,"SingleMu",[[mcttw,"bkg_ttw",frac_ttw,417],[mcttg,"bkg_ttg",frac_ttg,800],[mcdyjets,"bkg_zjets",frac_dyjets,857],[mcwjets,"bkg_wjets",frac_wjets,432],[mctt,"bkg_tt",frac_tt,901]],sig,"stop600_bino375",frac_sig600)
@@ -236,7 +239,7 @@ stack("CR1","CR1invmufake",data,"SingleMu",[[mcttw,"bkg_ttw",frac_ttw,417],[mctt
 stack("CR1","CR1_jetHt",data,"SingleMu",[[mcttw,"bkg_ttw",frac_ttw,417],[mcttg,"bkg_ttg",frac_ttg,800],[mcdyjets,"bkg_zjets",frac_dyjets,857],[mcwjets,"bkg_wjets",frac_wjets,432],[mctt,"bkg_tt",frac_tt,901]],sig,"stop600_bino375",frac_sig600)
 
 stack("CR2","CR2MET",data,"SingleMu",[[mcttw,"bkg_ttw",frac_ttw,417],[mcttg,"bkg_ttg",frac_ttg,800],[mcdyjets,"bkg_zjets",frac_dyjets,857],[mcwjets,"bkg_wjets",frac_wjets,432],[mctt,"bkg_tt",frac_tt,901]],sig,"stop600_bino375",frac_sig600)
-stack("CR2","CR2fakedR",data,"SingleMu",[[mcttw,"bkg_ttw",frac_ttw,417],[mcttg,"bkg_ttg",frac_ttg,800],[mcdyjets,"bkg_zjets",frac_dyjets,857],[mcwjets,"bkg_wjets",frac_wjets,432],[mctt,"bkg_tt",frac_tt,901]],sig,"stop600_bino375",frac_sig600)
+#stack("CR2","CR2fakedR",data,"SingleMu",[[mcttw,"bkg_ttw",frac_ttw,417],[mcttg,"bkg_ttg",frac_ttg,800],[mcdyjets,"bkg_zjets",frac_dyjets,857],[mcwjets,"bkg_wjets",frac_wjets,432],[mctt,"bkg_tt",frac_tt,901]],sig,"stop600_bino375",frac_sig600)
 stack("CR2","CR2_SingleMuPt",data,"SingleMu",[[mcttw,"bkg_ttw",frac_ttw,417],[mcttg,"bkg_ttg",frac_ttg,800],[mcdyjets,"bkg_zjets",frac_dyjets,857],[mcwjets,"bkg_wjets",frac_wjets,432],[mctt,"bkg_tt",frac_tt,901]],sig,"stop600_bino375",frac_sig600)
 stack("CR2","diFakeM",data,"SingleMu",[[mcttw,"bkg_ttw",frac_ttw,417],[mcttg,"bkg_ttg",frac_ttg,800],[mcdyjets,"bkg_zjets",frac_dyjets,857],[mcwjets,"bkg_wjets",frac_wjets,432],[mctt,"bkg_tt",frac_tt,901]],sig,"stop600_bino375",frac_sig600)
 stack("CR2","CR2nFake",data,"SingleMu",[[mcttw,"bkg_ttw",frac_ttw,417],[mcttg,"bkg_ttg",frac_ttg,800],[mcdyjets,"bkg_zjets",frac_dyjets,857],[mcwjets,"bkg_wjets",frac_wjets,432],[mctt,"bkg_tt",frac_tt,901]],sig,"stop600_bino375",frac_sig600)
@@ -246,6 +249,9 @@ stack("CR2","CR2_LeadBjetPt",data,"SingleMu",[[mcttw,"bkg_ttw",frac_ttw,417],[mc
 stack("CR2","CR2_jetHt",data,"SingleMu",[[mcttw,"bkg_ttw",frac_ttw,417],[mcttg,"bkg_ttg",frac_ttg,800],[mcdyjets,"bkg_zjets",frac_dyjets,857],[mcwjets,"bkg_wjets",frac_wjets,432],[mctt,"bkg_tt",frac_tt,901]],sig,"stop600_bino375",frac_sig600)
 
 
+os.system('cp -r WWWoutcombplot_'+dd+' ~/www/susyplots/')
+os.system('rm -r WWWoutcombplot_'+dd)
+print "the plots have also been saved to www"
 sw.Stop()
 print "Real time: " + str(sw.RealTime() / 60.0) + " minutes"
 print "CPU time:  " + str(sw.CpuTime() / 60.0) + " minutes"
