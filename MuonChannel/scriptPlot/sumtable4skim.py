@@ -137,7 +137,7 @@ for mc in [[mcttTree,wNmctt,frac_tt],[mcttgTree,wNmcttg,frac_ttg],[mcttwTree,wNm
     print "get bkg",mc[2]
     for i in range(mc[0].GetEntries()):
         mc[0].GetEntry(i)
-        wei=mc[0].puweight
+        wei=mc[0].totalweight
         mc[1][0]+=wei
         for re in [1,2,3,4]:
             if mc[0].region==re:
@@ -150,7 +150,7 @@ for sig in [[sigTree,wNsig,frac_sig600]]:
     print "get sig"
     for i in range(sig[0].GetEntries()):
         sig[0].GetEntry(i)
-        wei=sig[0].puweight
+        wei=sig[0].totalweight
         sig[1][0]+=wei
         for re in [1,2,3,4]:
             if sig[0].region==re:

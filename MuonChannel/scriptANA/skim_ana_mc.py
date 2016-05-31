@@ -33,6 +33,11 @@ chain_in.SetBranchStatus("AK8*",0)
 n_events = chain_in.GetEntries()
 print"Total events for processing: ",n_events
 
+musffile = TFile.Open("../muonscalefac/muonsf.root")
+muidsf=musffile.Get("tightidsf")
+muisosf=musffile.Get("tightisosf")
+mutrigsf=musffile.Get("trigsf")
+
 dd=datetime.datetime.now().strftime("%b%d")
 log = open("skim_logANA.txt","a")
 os.system('mkdir -p ../selected/skim_ana_root'+dd)
@@ -47,10 +52,12 @@ nVtx=array('i',[-1])
 rho=array('d',[-1.])
 pfMET=array('d',[-1.])
 puweight=array('d',[-1.])
+
 totalweight=array('d',[-1.])
 muPt=array('d',[-1.])
 muEta=array('d',[-1.])
 muPhi=array('d',[-1.])
+muSF=array('d',[-1.])
 muPFChIso=array('d',[-1.])
 muPFPhoIso=array('d',[-1.])
 muNeuIso=array('d',[-1.])
@@ -90,6 +97,8 @@ tree_out.Branch("pfMET",pfMET,"pfMET/D")
 tree_out.Branch("muPt",muPt,"muPt/D")
 tree_out.Branch("muEta",muEta,"muEta/D")
 tree_out.Branch("muPhi",muPhi,"muPhi/D")
+tree_out.Branch("muSF",muSF,"muSF/D")
+
 
 tree_out.Branch("njet",njet,"njet/I")
 tree_out.Branch("nbjet",nbjet,"nbjet/I")
@@ -221,8 +230,14 @@ for i in range(n_events):
     puweight[0]=pu
 #-------end get puweight----------------
 
-
-
+#-------get muon sf: id*iso*trig-------------------
+    pt=chain_in.muPt[mu_ind]
+    eta=abs(chain_in.muEta[mu_ind])
+    if pt<120:
+        musf=(muidsf.GetBinContent(muidsf.FindBin(pt,eta)))*(muisosf.GetBinContent(muisosf.FindBin(pt,eta)))*(mutrigsf.GetBinContent(mutrigsf.FindBin(pt,eta)))
+    else: musf=1.0
+    muSF[0]=musf
+#--------end muonsf------------------------------
 #---------------------photon dR loop----
     pholist1=[]
     for p0 in range(chain_in.nPho):
@@ -318,7 +333,7 @@ for i in range(n_events):
 
 #-----------------------define weight which used to calculated the weighted event numbers
 
-    weight=pu
+    weight=pu*musf
     totalweight[0]=weight
     nweight_pre=nweight_pre+weight
 
