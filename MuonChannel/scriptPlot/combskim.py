@@ -55,8 +55,8 @@ frac_sig600=lumi_data/lumi_sig600
 def stack(region,histname,data,dataname,bkglist,sig,signame,frac_sig):
 
 
-    c=ROOT.TCanvas("c","Plots",1100,900)
-    c.cd()
+    c=ROOT.TCanvas("c","Plots",1000,1100)
+#    c.cd()
     Header=ROOT.TPaveText(0.06,0.901,0.38,0.94,"NDC")
     Header.SetFillColor(0)
     Header.SetFillStyle(0)
@@ -71,14 +71,18 @@ def stack(region,histname,data,dataname,bkglist,sig,signame,frac_sig):
     regionComment.AddText(region+" muon")
 #    regionComment.SetTextColor(601)
 
+
     gStyle.SetOptStat(0)
     leg=ROOT.TLegend(0.6,0.65,0.9,0.9)    
     leg1=ROOT.TLegend(0.6,0.8,0.9,0.9)    
     hs=ROOT.THStack("hs","hs")
-
+#    hdiff=ROOT.TH1F()
+    hssum=ROOT.TH1F()
+    histdata=ROOT.TH1F()
 
 #---------------data
     histdata=data.Get(histname)
+    histdata.Sumw2()
     histdata.Draw()
     histdata.SetLineColor(kBlack)
     histdata.SetLineWidth(2)
@@ -115,17 +119,28 @@ def stack(region,histname,data,dataname,bkglist,sig,signame,frac_sig):
         hs.Add(histmc,"HIST")
         leg.AddEntry(histmc,bkg[1],"f")
     print "get bkg done"
-
+    hssum=hs.GetStack().Last().Clone()
     
 #---------------draw stacked bkgs with data and (sig)--------
 
 #    hs.SetTitle("MuonChannel: "++";"+branchname+";")
+    c.Clear()
+    pad1=TPad("pad1","pad1",0,0.27,1,1)
+    pad2=TPad("pad2","pad2",0,0.03,1,0.27)
+#    pad1.SetBottomMargin(0.0001)
+#    pad1.SetBorderMode(0)
+    pad2.SetTopMargin(0.05)
+    pad1.Draw()
+    pad2.Draw()
+
+    pad1.cd()
     hs.Draw()
+    histdata.Draw("e same")
     hs.SetTitle("")
     hs.GetXaxis().SetTitle(histdata.GetXaxis().GetTitle())
     hs.GetXaxis().SetTitleOffset(1.1)
     hs.GetYaxis().SetTitle(histdata.GetYaxis().GetTitle())
-    hs.GetYaxis().SetTitleOffset(1.1)
+    hs.GetYaxis().SetTitleOffset(1.2)
     gPad.SetLogy()
 
 #    hs.Draw("nostack")
@@ -137,13 +152,50 @@ def stack(region,histname,data,dataname,bkglist,sig,signame,frac_sig):
     leg.Draw()
     Header.Draw("same")
     regionComment.Draw("same")
+
+    pad2.cd()
+    # for gbin in range(1,hssum.GetNbinsX()):
+    #     if hssum.GetBinContent(gbin)==0:continue
+    #     diff=histdata.GetBinContent(gbin)/(hssum.GetBinContent(gbin)+0.0)
+    #     hdiff.SetBinContent(gbin,diff)
+    #     hdiff.GetYaxis().SetRange
+    #     hdiff.GetYaxis().SetTitle("Data/MC")
+    #     hdiff.Draw("e")
+    #     line=TLine(0,1,hssum.GetXaxis().GetXmax(),1)
+    #     line.SetLineStyle(2)
+    #     line.Draw("same")
+    hdiff=histdata.Clone("hdiff")
+    hdiff.Divide(hssum)
+    hdiff.SetLineWidth(1)
+    hdiff.GetYaxis().SetTitle("Data/MC           ")
+    hdiff.GetYaxis().SetTitleSize(0.07)
+    hdiff.GetYaxis().SetTitleOffset(0.5)
+    hdiff.GetYaxis().SetLabelSize(0.05)
+    hdiff.GetXaxis().SetTitle("")
+    hdiff.GetXaxis().SetLabelSize(0.07)
+    hdiff.SetMaximum(2.0)
+    hdiff.SetMinimum(0.0)
+    hdiff.Draw("e")
+    line=TLine(0,1,hssum.GetXaxis().GetXmax(),1)
+    line.SetLineStyle(2)
+    line.Draw("same")
+
+
     c.Print(histname+".pdf","pdf")
     c.Print("WWWoutcombplot_"+dd+"/"+histname+".png")
     c.Clear()
 #--------and stack
 
 #----------------draw sketch plot online with lines
-    hssum=hs.GetStack().Last().Clone()
+
+    pad1=TPad("pad1","pad1",0,0.25,1,1)
+    pad2=TPad("pad2","pad2",0,0.03,1,0.25)
+#    pad1.SetBottomMargin(0.0001)
+#    pad1.SetBorderMode(0)
+    pad2.SetTopMargin(0.05)
+    pad1.Draw()
+    pad2.Draw()
+    pad1.cd()
     hssum.SetLineColor(kRed)
     hssum.SetLineWidth(2)
     hssum.SetFillColor(0)
@@ -165,7 +217,27 @@ def stack(region,histname,data,dataname,bkglist,sig,signame,frac_sig):
     leg1.Draw()
     Header.Draw("same")
     regionComment.Draw("same")
+
+    pad2.cd()
+#    hdiff=histdata.Clone("hdiff")
+#    hdiff.Divide(hssum)
+#    hdiff.SetLineWidth(1)
+#    hdiff.GetYaxis().SetTitle("Data/MC           ")
+#    hdiff.GetYaxis().SetTitleSize(0.07)
+#    hdiff.GetYaxis().SetTitleOffset(0.5)
+#    hdiff.GetYaxis().SetLabelSize(0.05)
+#    hdiff.GetXaxis().SetTitle("")
+#    hdiff.GetXaxis().SetLabelSize(0.07)
+#    hdiff.SetMaximum(2.0)
+#    hdiff.SetMinimum(0.0)
+    hdiff.Draw("e")
+    line=TLine(0,1,hssum.GetXaxis().GetXmax(),1)
+    line.SetLineStyle(2)
+    line.Draw("same")
+
+
     c.Print(histname+"sketch.pdf","pdf")
+
     c.Print("WWWoutcombplot_"+dd+"/"+histname+"sketch.png")
     c.Clear()
 
@@ -207,6 +279,7 @@ stack("SR1","SR1MET",data,"SingleMu",[[mcttw,"bkg_ttw",frac_ttw,417],[mcttg,"bkg
 stack("SR1","SR1dR_pho_mu",data,"SingleMu",[[mcttw,"bkg_ttw",frac_ttw,417],[mcttg,"bkg_ttg",frac_ttg,800],[mcdyjets,"bkg_zjets",frac_dyjets,857],[mcwjets,"bkg_wjets",frac_wjets,432],[mctt,"bkg_tt",frac_tt,901]],sig,"stop600_bino375",frac_sig600)
 stack("SR1","SR1_SingleMuPt",data,"SingleMu",[[mcttw,"bkg_ttw",frac_ttw,417],[mcttg,"bkg_ttg",frac_ttg,800],[mcdyjets,"bkg_zjets",frac_dyjets,857],[mcwjets,"bkg_wjets",frac_wjets,432],[mctt,"bkg_tt",frac_tt,901]],sig,"stop600_bino375",frac_sig600)
 stack("SR1","SinglePhoR9",data,"SingleMu",[[mcttw,"bkg_ttw",frac_ttw,417],[mcttg,"bkg_ttg",frac_ttg,800],[mcdyjets,"bkg_zjets",frac_dyjets,857],[mcwjets,"bkg_wjets",frac_wjets,432],[mctt,"bkg_tt",frac_tt,901]],sig,"stop600_bino375",frac_sig600)
+stack("SR1","SinglePhoHoE",data,"SingleMu",[[mcttw,"bkg_ttw",frac_ttw,417],[mcttg,"bkg_ttg",frac_ttg,800],[mcdyjets,"bkg_zjets",frac_dyjets,857],[mcwjets,"bkg_wjets",frac_wjets,432],[mctt,"bkg_tt",frac_tt,901]],sig,"stop600_bino375",frac_sig600)
 stack("SR1","SinglePhoSigmaIEtaIEta",data,"SingleMu",[[mcttw,"bkg_ttw",frac_ttw,417],[mcttg,"bkg_ttg",frac_ttg,800],[mcdyjets,"bkg_zjets",frac_dyjets,857],[mcwjets,"bkg_wjets",frac_wjets,432],[mctt,"bkg_tt",frac_tt,901]],sig,"stop600_bino375",frac_sig600)
 stack("SR1","SinglePhoSigmaIPhiIPhi",data,"SingleMu",[[mcttw,"bkg_ttw",frac_ttw,417],[mcttg,"bkg_ttg",frac_ttg,800],[mcdyjets,"bkg_zjets",frac_dyjets,857],[mcwjets,"bkg_wjets",frac_wjets,432],[mctt,"bkg_tt",frac_tt,901]],sig,"stop600_bino375",frac_sig600)
 stack("SR1","SinglePhoEt",data,"SingleMu",[[mcttw,"bkg_ttw",frac_ttw,417],[mcttg,"bkg_ttg",frac_ttg,800],[mcdyjets,"bkg_zjets",frac_dyjets,857],[mcwjets,"bkg_wjets",frac_wjets,432],[mctt,"bkg_tt",frac_tt,901]],sig,"stop600_bino375",frac_sig600)
