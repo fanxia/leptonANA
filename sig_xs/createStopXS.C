@@ -37,6 +37,9 @@ void createStopXS() {
   TH1D * h_errors8 = (TH1D*)h_xsec8->Clone("errors");
   TH1D * h_errors13 = (TH1D*)h_xsec13->Clone("errors");
 
+
+
+
   ifstream fin8;
   fin8.open("xsec/stop_pair_8TeVxs.dat");
   ifstream fin13;
@@ -77,7 +80,11 @@ while(1) {
 	if(mBino>1000) break;}
 
   }
-  
+
+  TH1D * h_ratio = (TH1D*)h_xsec13->Clone("ratio");
+  h_ratio->Sumw2();
+  h_ratio->Divide(h_xsec8);
+    
  //  gStyle->SetOptStat(0)
   //gPad->SetLogy()
 
@@ -104,6 +111,14 @@ while(1) {
   Header8->SetLineColor(0);
   Header8->SetBorderSize(0);
   Header8->AddText("pp  #sqrt{s} = 8 TeV  NLO-NLL  ");
+
+  TPaveText *HeaderRatio = new TPaveText(0.2, 0.75, 0.45, 0.85, "NDC");
+  HeaderRatio->SetFillColor(10);
+  //  HeaderRatio->SetFillStyle(0);
+  HeaderRatio->SetLineColor(1);
+  HeaderRatio->SetBorderSize(1);
+  HeaderRatio->AddText("pp #rightarrow #tilde{t}#tilde{t}*  #frac{#sigma(#sqrt{s}=13TeV)}{#sigma(#sqrt{s}=8TeV)}");
+
 
   c->SetRightMargin(0.14);
   h2_xsec13->Draw("colz");
@@ -185,8 +200,8 @@ while(1) {
 
   //combine 8 and 13 TeV cross section
   c->Clear();
-  TLegend *leg=new TLegend(0.7,0.75,0.85,0.9);
-
+  TLegend *leg=new TLegend(0.55,0.78,0.85,0.9);
+  leg->SetTextSize(0.03);
   gPad->SetLogy();
   gPad->SetGrid();
   h_xsec8->Draw("E4");
@@ -195,16 +210,29 @@ while(1) {
   h_xsec13->SetFillColor(kBlue-10);
   h_xsec13_2->Draw("Hist C same");
   h_xsec13_2->SetLineColor(kBlue);
-  leg->AddEntry(h_xsec13_2,"pp 13TeV NLO","l");
+  leg->AddEntry(h_xsec13_2,"pp 13TeV NLO+NLL","l");
 
   h_xsec8_2->Draw("Hist C same");
   h_xsec8_2->SetLineColor(kRed);
-  leg->AddEntry(h_xsec8_2,"pp 8TeV NLO","l");
+  leg->AddEntry(h_xsec8_2,"pp 8TeV NLO+NLL","l");
   leg->Draw();
   h_xsec8->GetXaxis()->SetTitleOffset(1.2);
   h_xsec8->GetYaxis()->SetTitleOffset(1.2);
-  h_xsec8->SetTitle(";m_{Stop}[GeV];Stop pair production #sigma [pb]");
+  h_xsec8->SetTitle(";m_{ #tilde{t}} [GeV];Stop pair production #sigma [pb]");
+  c->Print("xsec.pdf");
+
+  c->Clear();
+  gPad->SetLogy();
+  gPad->SetGrid();
+  h_ratio->Draw("HIST C");
+  h_ratio->SetLineWidth(2);
+  h_ratio->GetXaxis()->SetTitleOffset(1.2);
+  h_ratio->GetYaxis()->SetTitleOffset(1.2);
+  //  h_ratio->SetTitle(";m_{ #tilde{t}} [GeV];Stop pair production #sigma_{13TeV}/#sigma_{8TeV}");
+  h_ratio->SetTitle(";m_{ #tilde{t}} [GeV];"); 
+  HeaderRatio->Draw("Same");
   c->Print("xsec.pdf)");
+
 
 
   /*
