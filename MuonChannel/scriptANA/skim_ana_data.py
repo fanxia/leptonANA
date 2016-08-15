@@ -46,6 +46,7 @@ region=array('i',[-1])
 nVtx=array('i',[-1])
 rho=array('d',[-1.])
 pfMET=array('d',[-1.])
+Mt=array('d',[-1.])
 muPt=array('d',[-1.])
 muEta=array('d',[-1.])
 muPhi=array('d',[-1.])
@@ -84,6 +85,7 @@ tree_out.Branch("region",region,"region/I")
 tree_out.Branch("nVtx",nVtx,"nVtx/I")
 tree_out.Branch("rho",rho,"rho/D")
 tree_out.Branch("pfMET",pfMET,"pfMET/D")
+tree_out.Branch("Mt",Mt,"Mt/D")
 tree_out.Branch("muPt",muPt,"muPt/D")
 tree_out.Branch("muEta",muEta,"muEta/D")
 tree_out.Branch("muPhi",muPhi,"muPhi/D")
@@ -209,6 +211,10 @@ for i in range(n_events):
         jetEta.push_back(chain_in.jetEta[ind])
         jetPhi.push_back(chain_in.jetPhi[ind])
 
+
+#-------------lepton Mt calculation----------------
+    lep_Mt=(2*chain_in.muPt[mu_ind]*chain_in.pfMET*(1-TMath.Cos(chain_in.muPhi[mu_ind]-chain_in.pfMETPhi)))**0.5
+    Mt[0]=lep_Mt
 
 
 
