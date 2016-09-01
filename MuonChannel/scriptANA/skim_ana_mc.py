@@ -19,6 +19,7 @@ from leptonANA.ElectronChannel.ana_ele import *
 from leptonANA.ElectronChannel.ana_jet import *
 from leptonANA.ElectronChannel.ana_fake import *
 from leptonANA.ElectronChannel.ana_pho import *
+from leptonANA.ElectronChannel.ana_btagweight import *
 from leptonANA.ElectronChannel.Utilfunc import *
 
 
@@ -39,6 +40,16 @@ muidsf=musffile.Get("tightidsf")
 muisosf=musffile.Get("tightisosf")
 mutrigsf=musffile.Get("trigsf")
 
+btageffile = TFile.Open("../btag/btageff_mcttnew.root")
+l_btageff=btageffile.Get("lEff")
+c_btageff=btageffile.Get("cEff")
+b_btageff=btageffile.Get("bEff")
+
+btagsfile = ROOT.BTagCalibration("csvv2","/afs/cern.ch/work/f/fxia/private/SUSY/CMSSW_7_4_16_patch2/src/leptonANA/MuonChannel/btag/CSVv2.csv")
+bc_btagsfReader = ROOT.BTagCalibrationReader(btagsfile,1,"mujets") # 1 for medium working point, mujets for c and b quark
+l_btagsfReader = ROOT.BTagCalibrationReader(btagsfile,1,"comb") # 1 for medium working point, comb for light quark
+
+
 dd=datetime.datetime.now().strftime("%b%d")
 log = open("skim_logANA.txt","a")
 os.system('mkdir -p ../selected/skim_ana_root'+dd)
@@ -54,6 +65,7 @@ rho=array('d',[-1.])
 pfMET=array('d',[-1.])
 Mt=array('d',[-1.])
 puweight=array('d',[-1.])
+btagweight=array('d',[1.])
 
 totalweight=array('d',[-1.])
 muPt=array('d',[-1.])
@@ -68,6 +80,7 @@ njet=array('i',[-1])
 jetPt=vector(float)(0)
 jetEta=vector(float)(0)
 jetPhi=vector(float)(0)
+jetFlav=vector(float)(0)
 nbjet=array('i',[-1])
 bjetPt=vector(float)(0)
 bjetEta=vector(float)(0)
@@ -95,6 +108,7 @@ tree_out.Branch("region",region,"region/I")
 tree_out.Branch("nVtx",nVtx,"nVtx/I")
 tree_out.Branch("rho",rho,"rho/D")
 tree_out.Branch("puweight",puweight,"puweight/D")
+tree_out.Branch("btagweight",btagweight,"btagweight/D")
 tree_out.Branch("totalweight",totalweight,"totalweight/D")
 tree_out.Branch("pfMET",pfMET,"pfMET/D")
 tree_out.Branch("Mt",Mt,"Mt/D")
@@ -112,6 +126,7 @@ tree_out.Branch("bjetPhi",bjetPhi)
 tree_out.Branch("jetPt",jetPt)
 tree_out.Branch("jetEta",jetEta)
 tree_out.Branch("jetPhi",jetPhi)
+tree_out.Branch("jetFlav",jetFlav)
 
 tree_out.Branch("nPho",nPho,"nPho/I")
 tree_out.Branch("phoEt",phoEt)
@@ -228,6 +243,45 @@ for i in range(n_events):
         jetPt.push_back(chain_in.jetPt[ind])
         jetEta.push_back(chain_in.jetEta[ind])
         jetPhi.push_back(chain_in.jetPhi[ind])
+        jetFlav.push_back(chain_in.jetPartonID[ind])
+
+#-----------Calculate btag weight--------------
+    Jets=[]
+    for j in jetlist:
+        Jet=[]   #Jet=[btag,flavor,btageff,btagsf]
+        if j in bjetlist: Jet.append(True)
+        else: Jet.append(False)
+        
+        Jet_flavor=chain_in.jetPartonID[j]
+        Jet_pt=chain_in.jetPt[j]
+        Jet_Eta=chain_in.jetEta[j]
+        Jet.append(Jet_flavor)
+        
+        if abs(Jet_flavor) in [0,1,2,3,21]: 
+            h_eff=l_btageff
+            Jet_eff=l_btageff.GetBinContent(l_btageff.FindBin(Jet_pt,Jet_Eta))
+            Jet_sf=l_btagsfReader.eval(2,abs(Jet_Eta),Jet_pt)
+        elif abs(Jet_flavor)==4:
+            Jet_eff=c_btageff.GetBinContent(c_btageff.FindBin(Jet_pt,Jet_Eta))
+            Jet_sf=bc_btagsfReader.eval(1,Jet_Eta,Jet_pt)
+        elif abs(Jet_flavor)==5: 
+            Jet_eff=b_btageff.GetBinContent(b_btageff.FindBin(Jet_pt,Jet_Eta))
+            Jet_sf=bc_btagsfReader.eval(0,Jet_Eta,Jet_pt)
+        else:
+            Jet_eff=0.0
+            Jet_sf=1.0
+
+        Jet.append(Jet_eff)
+        Jet.append(Jet_sf)
+
+        Jets.append(Jet)
+
+
+#    if i==289: print Jets
+#    print i
+    bwei=BTAGweight(Jets)
+    btagweight[0]=bwei
+
 
 
 #-------------lepton Mt calculation----------------
@@ -345,7 +399,7 @@ for i in range(n_events):
 
 #-----------------------define weight which used to calculated the weighted event numbers
 
-    weight=pu*musf
+    weight=pu*musf*bwei
     totalweight[0]=weight
     nweight_pre=nweight_pre+weight
 
@@ -380,6 +434,7 @@ for i in range(n_events):
     jetPt.clear()
     jetEta.clear()
     jetPhi.clear()
+    jetFlav.clear()
 
     phoEt.clear()
     phoEta.clear()
